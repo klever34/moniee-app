@@ -1,4 +1,5 @@
-import React, {createRef, useState} from 'react';
+/* eslint-disable react-native/no-inline-styles */
+import React, {createRef, useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,10 +8,21 @@ import {
   NativeSyntheticEvent,
   TextInputChangeEventData,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Alert,
+  Image,
+  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import {Decoder} from 'elm-decoders';
 import Subheader from '../../../components/Subheader';
-import {RequestMoneyPayload} from '../../../contexts/User';
+import {
+  ContactsData,
+  requestMoney,
+  RequestMoneyPayload,
+  sendMoney,
+} from '../../../contexts/User';
 import {ScreenProps} from '../../../../App';
 import Layout from '../../../components/Layout';
 import {getFieldValidationError, scaleHeight, scaleWidth} from '../../../utils';
@@ -19,13 +31,26 @@ import MonieeButton from '../../../components/MonieeButton';
 import {scaledSize} from '../../../assets/style-guide/typography';
 import TransactionPin from '../../../components/TransactionPin';
 import ActionSheet from 'react-native-actions-sheet';
+import MonieeActionSheet from '../../../components/MonieeActionSheet';
+import ActionSheetContainer from '../../../components/ActionSheetContainer';
+import {
+  check,
+  PERMISSIONS,
+  RESULTS,
+  request as permReq,
+} from 'react-native-permissions';
+import Contacts from 'react-native-contacts';
+import Avatar from '../../../components/Avatar';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
 
 const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   navigation,
   route,
 }) => {
-  const fundType = route.params.funds_type;
+  const {funds_type, amount} = route.params;
   const transactionPinSheetRef = createRef<ActionSheet>();
+  const contactActionSheetRef = createRef<ActionSheet>();
+  const contactListSheetRef = createRef<ActionSheet>();
 
   const [hasFormFieldBeenTouched, setHasFormFieldBeenTouched] = useState<{
     [key: string]: boolean;
@@ -41,15 +66,22 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
       predicate: (arg: string) => arg.length >= 9,
       failureMessage: 'The mobile must be at least 9 digits long',
     }),
+    amount: Decoder.number,
   });
   const baseRequest: RequestMoneyPayload = {
     purpose: '',
-    phone_number: '234',
+    phone_number: '',
+    amount: Number(amount),
   };
   const [formErrors, setFormErrors] = useState<any>({});
-  const [isLoading] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<RequestMoneyPayload>(baseRequest);
-  //@ts-ignore
+  const [contactList, setContactList] = useState<ContactsData[]>();
+  const [subContactList, setSubContactList] = useState<ContactsData[]>();
+  const [searchInput, setSearchInput] = useState('');
+  const [isChecked] = useState<boolean>(false);
+  const [selectedContacts, setSelectedContacts] = useState<any>([]);
+  const [stopLoader, setStopLoader] = useState<boolean>(false);
 
   const hasFormErrors = (errors: any) => {
     const errorFields = Object.keys(errors);
@@ -81,100 +113,413 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
     }
   };
 
-  const onDone = () => {
-    navigation.push('PaymentStatus', {
-      paymentSuccessStatus: 'success',
-    });
+  const onDone = useCallback(
+    async (pin: string) => {
+      transactionPinSheetRef?.current?.hide();
+      console.log({pin});
+      setLoading(true);
+      try {
+        const recipients = [
+          {
+            mobile: request.phone_number,
+            amount: request.amount,
+            reason: request.purpose,
+          },
+        ];
+        console.log(recipients);
+
+        await sendMoney({recipients, pin});
+        setLoading(false);
+        navigation.replace('PaymentStatus', {
+          paymentSuccessStatus: 'success',
+        });
+      } catch (error: any) {
+        console.log(error.response.data);
+        // setLoading(false);
+        if (error?.response?.data) {
+          Alert.alert('Error', error.response.data.message);
+        }
+      }
+    },
+    [navigation, request, transactionPinSheetRef],
+  );
+
+  useEffect(() => {
+    if (stopLoader) {
+      setLoading(false);
+    }
+  }, [searchInput, stopLoader]);
+
+  const sendRequestMoneyPayload = async () => {
+    setLoading(true);
+    setStopLoader(false);
+    try {
+      const recipients = [
+        {
+          mobile: request.phone_number,
+          amount: request.amount,
+          reason: request.purpose,
+        },
+      ];
+      console.log(recipients);
+
+      await requestMoney({recipients});
+      setLoading(false);
+      navigation.replace('PaymentStatus', {
+        paymentSuccessStatus: 'success',
+      });
+    } catch (error: any) {
+      console.log(error.response.data);
+      //   setLoading(false);
+      setStopLoader(true);
+      if (error?.response?.data) {
+        Alert.alert('Error', error.response.data.message);
+      }
+    }
+  };
+
+  const handleContacts = async () => {
+    contactListSheetRef?.current?.show();
+    try {
+      const contacts = await Contacts.getAll();
+      const enrichedContacts = contacts.map(item => ({
+        displayName: `${item.givenName} ${item.familyName}`,
+        familyName: item.familyName,
+        givenName: item.givenName,
+        phoneNumbers: item.phoneNumbers,
+      }));
+      setContactList(enrichedContacts);
+      setSubContactList(enrichedContacts);
+      console.log(enrichedContacts.length);
+    } catch (err: any) {}
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (searchInput === '') {
+      setSubContactList(contactList);
+    }
+  }, [contactList, searchInput]);
+
+  const grantAccess = async () => {
+    permReq(
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.CONTACTS
+        : PERMISSIONS.ANDROID.READ_CONTACTS,
+    )
+      .then(async result => {
+        switch (result) {
+          case RESULTS.UNAVAILABLE:
+            console.log(
+              'This feature is not available (on this device / in this context)',
+            );
+            break;
+          case RESULTS.DENIED:
+            console.log(
+              'The permission has not been requested / is denied but requestable',
+            );
+            break;
+          case RESULTS.LIMITED:
+            console.log('The permission is limited: some actions are possible');
+            break;
+          case RESULTS.GRANTED:
+            console.log('The permission is granted');
+            handleContacts();
+            break;
+          case RESULTS.BLOCKED:
+            console.log('The permission is denied and not requestable anymore');
+            break;
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
+  const filterItems = () => {
+    if (searchInput === '') {
+      setSubContactList(contactList);
+    }
+    try {
+      const newData = subContactList?.filter(function (item) {
+        //@ts-ignore
+        const itemData = item.displayName
+          ? item?.displayName!.toLowerCase()
+          : ''.toLowerCase();
+        const textData = searchInput.toLowerCase();
+        return itemData.indexOf(textData) > -1;
+      });
+      setSubContactList(newData);
+    } catch (error) {}
+  };
+
+  const checkIfAccessGranted = () => {
+    check(
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.CONTACTS
+        : PERMISSIONS.ANDROID.READ_CONTACTS,
+    )
+      .then(async result => {
+        switch (result) {
+          case RESULTS.UNAVAILABLE:
+            console.log(
+              'This feature is not available (on this device / in this context)',
+            );
+            break;
+          case RESULTS.DENIED:
+            contactActionSheetRef?.current?.show();
+            console.log(
+              'The permission has not been requested / is denied but requestable',
+            );
+            break;
+          case RESULTS.LIMITED:
+            console.log('The permission is limited: some actions are possible');
+            break;
+          case RESULTS.GRANTED:
+            console.log('The permission is granted');
+            handleContacts();
+            break;
+          case RESULTS.BLOCKED:
+            console.log('The permission is denied and not requestable anymore');
+            break;
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
+
+  const onSelect = (event: boolean, item: ContactsData) => {
+    let updatedSelectedContacts: any[] = [];
+    if (event) {
+      updatedSelectedContacts.push({
+        ...item,
+      });
+      const newStateData: any[] = [
+        ...selectedContacts,
+        ...updatedSelectedContacts,
+      ];
+      setSelectedContacts(newStateData);
+    } else {
+      updatedSelectedContacts = selectedContacts.filter(
+        (contact: any) =>
+          contact.phoneNumbers[0].number !== item.phoneNumbers[0].number,
+      );
+      setSelectedContacts(updatedSelectedContacts);
+    }
   };
 
   return (
     <Layout>
-      <View style={styles.main}>
-        <Subheader
-          goBack={navigation.goBack}
-          title={`${fundType === 'request' ? 'Request' : 'Send'} ₦15,000`}
-        />
-        <TransactionPin
-          actionSheetRef={transactionPinSheetRef}
-          onDone={onDone}
-        />
-        <View style={styles.bigInputBox}>
-          <View
-            // eslint-disable-next-line no-sparse-arrays
-            style={[
-              styles.bigBox,
-              styles.inputBox,
-              hasFormFieldBeenTouched.purpose &&
-                !!getFieldValidationError('purpose', formErrors) &&
-                styles.errorInput,
-              hasFormFieldBeenTouched.purpose &&
-                !getFieldValidationError('purpose', formErrors) &&
-                styles.successInput,
-              ,
-            ]}>
-            <TextInput
-              placeholder={`Purpose ${
-                fundType === 'request' ? 'of request' : 'for sending'
-              }`}
-              placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
-              onChange={e => onChange(e, 'purpose')}
-              keyboardType={'number-pad'}
-              style={styles.colorBlack}
+      <MonieeActionSheet refObj={contactActionSheetRef}>
+        <ActionSheetContainer>
+          <View style={{}}>
+            <Image
+              source={require('../../../assets/images/icon_4.png')}
+              style={styles.image}
+            />
+            <Text style={styles.modalTitle}>
+              Allow Moniee to read Contacts?
+            </Text>
+            <Text style={styles.modalSubTitle}>
+              To request or send funds, Moniee requires your{'\n'}permission to
+              read read your contacts.
+            </Text>
+            <MonieeButton
+              title={'Grant Access'}
+              mode={'primary'}
+              onPress={() => grantAccess()}
             />
           </View>
-        </View>
-        {!!getFieldValidationError('purpose', formErrors) && (
-          <Text style={styles.errorMsgText}>{formErrors?.purpose.error!}</Text>
-        )}
-        <View style={styles.bigInputBox}>
-          <View
-            // eslint-disable-next-line no-sparse-arrays
-            style={[
-              styles.bigBox,
-              styles.inputBox,
-              hasFormFieldBeenTouched.phone_number &&
-                !!getFieldValidationError('phone_number', formErrors) &&
-                styles.errorInput,
-              hasFormFieldBeenTouched.phone_number &&
-                !getFieldValidationError('phone_number', formErrors) &&
-                styles.successInput,
-              ,
-            ]}>
+        </ActionSheetContainer>
+      </MonieeActionSheet>
+      <ActionSheet
+        initialOffsetFromBottom={1}
+        ref={contactListSheetRef}
+        statusBarTranslucent
+        bounceOnOpen={true}
+        drawUnderStatusBar={true}
+        bounciness={4}
+        gestureEnabled={true}
+        defaultOverlayOpacity={0.3}>
+        <View
+          style={{
+            paddingHorizontal: 12,
+          }}>
+          <ScrollView
+            nestedScrollEnabled
+            onMomentumScrollEnd={() => {
+              contactListSheetRef.current?.handleChildScrollEnd();
+            }}
+            style={styles.scrollview}>
             <TextInput
-              placeholder={'Phone Number'}
-              placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
-              onChange={e => onChange(e, 'phone_number')}
-              keyboardType={'number-pad'}
-              style={styles.colorBlack}
+              onChangeText={text => {
+                setSearchInput(text);
+                filterItems();
+              }}
+              style={styles.input}
+              placeholder="Search Name"
             />
-          </View>
+            <View style={{flex: 1, marginBottom: 20}}>
+              {subContactList?.map((item: any, index: number) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.contactStyle,
+                    {justifyContent: 'space-between'},
+                  ]}>
+                  <View style={styles.contactStyle}>
+                    <Avatar
+                      name={`${item?.givenName ?? ''} ${item.familyName ?? ''}`}
+                    />
+                    <TouchableOpacity
+                      onPress={() => {
+                        contactListSheetRef?.current?.hide();
+                      }}>
+                      <Text style={styles.contactName}>
+                        {item?.displayName ?? ''}
+                      </Text>
+                      <Text style={styles.contactMobile}>
+                        {item?.phoneNumbers[0].number ?? 'N/A'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <BouncyCheckbox
+                    size={18}
+                    isChecked={isChecked}
+                    fillColor={StyleGuide.Colors.shades.green[600]}
+                    unfillColor={'transparent'}
+                    iconStyle={{
+                      borderRadius: 20,
+                      padding: 10,
+                      borderColor: isChecked
+                        ? StyleGuide.Colors.shades.green[600]
+                        : StyleGuide.Colors.shades.grey[1100],
+                    }}
+                    onPress={event => {
+                      onSelect(event, item);
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
+            <MonieeButton
+              title={'Done'}
+              mode={'primary'}
+              onPress={() => {
+                console.log(selectedContacts);
+                contactListSheetRef?.current?.hide();
+              }}
+            />
+            <View style={styles.footer} />
+          </ScrollView>
         </View>
-        {!!getFieldValidationError('phone_number', formErrors) && (
-          <Text style={styles.errorMsgText}>
-            {formErrors?.phone_number.error!}
-          </Text>
-        )}
-
-        <View style={styles.subtext}>
-          <MonieeButton
-            title={`Send ${fundType === 'request' ? 'Request' : 'Money'}`}
-            mode={
-              hasFormBeenTouched(hasFormFieldBeenTouched) &&
-              !hasFormErrors(formErrors)
-                ? 'primary'
-                : 'neutral'
-            }
-            disabled={
-              !(
-                hasFormBeenTouched(hasFormFieldBeenTouched) &&
-                !hasFormErrors(formErrors)
-              )
-            }
-            onPress={() => transactionPinSheetRef?.current?.show()}
-            isLoading={isLoading}
+      </ActionSheet>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={{flex: 1}}>
+          <TransactionPin
+            actionSheetRef={transactionPinSheetRef}
+            onDone={(pin: string) => onDone(pin)}
           />
+          <View style={styles.main}>
+            <Subheader
+              goBack={navigation.goBack}
+              title={`${
+                funds_type === 'request' ? 'Request' : 'Send'
+              } ₦${amount}`}
+            />
+            <View style={styles.bigInputBox}>
+              <View
+                // eslint-disable-next-line no-sparse-arrays
+                style={[
+                  styles.bigBox,
+                  styles.inputBox,
+                  hasFormFieldBeenTouched.purpose &&
+                    !!getFieldValidationError('purpose', formErrors) &&
+                    styles.errorInput,
+                  hasFormFieldBeenTouched.purpose &&
+                    !getFieldValidationError('purpose', formErrors) &&
+                    styles.successInput,
+                  ,
+                ]}>
+                <TextInput
+                  placeholder={`Purpose ${
+                    funds_type === 'request' ? 'of request' : 'for sending'
+                  }`}
+                  placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
+                  onChange={e => onChange(e, 'purpose')}
+                  style={styles.colorBlack}
+                />
+              </View>
+            </View>
+            {!!getFieldValidationError('purpose', formErrors) && (
+              <Text style={styles.errorMsgText}>
+                {formErrors?.purpose.error!}
+              </Text>
+            )}
+            <View style={styles.bigInputBox}>
+              <View
+                // eslint-disable-next-line no-sparse-arrays
+                style={[
+                  styles.bigBox,
+                  styles.inputBox,
+                  hasFormFieldBeenTouched.phone_number &&
+                    !!getFieldValidationError('phone_number', formErrors) &&
+                    styles.errorInput,
+                  hasFormFieldBeenTouched.phone_number &&
+                    !getFieldValidationError('phone_number', formErrors) &&
+                    styles.successInput,
+                  ,
+                ]}>
+                <TextInput
+                  placeholder={'Phone Number'}
+                  placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
+                  onChange={e => onChange(e, 'phone_number')}
+                  keyboardType={'number-pad'}
+                  style={styles.colorBlack}
+                />
+                <TouchableOpacity onPress={() => checkIfAccessGranted()}>
+                  <Image
+                    source={require('../../../assets/images/book.png')}
+                    style={styles.icon}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+            {!!getFieldValidationError('phone_number', formErrors) && (
+              <Text style={styles.errorMsgText}>
+                {formErrors?.phone_number.error!}
+              </Text>
+            )}
+
+            <View style={styles.subtext}>
+              <MonieeButton
+                title={`Send ${funds_type === 'request' ? 'Request' : 'Money'}`}
+                mode={
+                  hasFormBeenTouched(hasFormFieldBeenTouched) &&
+                  !hasFormErrors(formErrors)
+                    ? 'primary'
+                    : 'neutral'
+                }
+                disabled={
+                  !(
+                    hasFormBeenTouched(hasFormFieldBeenTouched) &&
+                    !hasFormErrors(formErrors)
+                  )
+                }
+                onPress={() => {
+                  if (funds_type === 'request') {
+                    sendRequestMoneyPayload();
+                  } else {
+                    transactionPinSheetRef?.current?.show();
+                  }
+                }}
+                isLoading={isLoading}
+              />
+            </View>
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Layout>
   );
 };
@@ -238,7 +583,7 @@ const styles = StyleSheet.create({
   colorBlack: {
     color: StyleGuide.Colors.black,
     fontFamily: 'NexaRegular',
-    width: '80%',
+    width: '90%',
   },
   extraStyle: {
     textAlign: 'center',
@@ -248,10 +593,63 @@ const styles = StyleSheet.create({
   createText: {
     color: StyleGuide.Colors.shades.magenta[25],
   },
-
-  //to be removed
-  container: {
-    flex: 1,
+  icon: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+    marginTop: Platform.OS === 'ios' ? 0 : 10,
+  },
+  image: {
+    width: '50%',
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginTop: -60,
+  },
+  modalTitle: {
+    textAlign: 'center',
+    color: StyleGuide.Colors.primary,
+    fontSize: StyleGuide.Typography[16],
+    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    marginTop: -60,
+  },
+  modalSubTitle: {
+    textAlign: 'center',
+    color: StyleGuide.Colors.shades.grey[1400],
+    fontSize: scaledSize(13),
+    fontFamily: 'NexaRegular',
+    marginVertical: 15,
+  },
+  scrollview: {
+    width: '100%',
+    padding: 12,
+  },
+  footer: {
+    height: 100,
+  },
+  input: {
+    width: '100%',
+    minHeight: 30,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  contactStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  contactName: {
+    color: StyleGuide.Colors.shades.grey[100],
+    fontSize: scaledSize(11),
+    fontFamily: 'NexaRegular',
+  },
+  contactMobile: {
+    color: StyleGuide.Colors.shades.magenta[50],
+    fontSize: scaledSize(13),
+    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    marginTop: 7,
   },
 });
 

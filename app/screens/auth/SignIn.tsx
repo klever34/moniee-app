@@ -1,3 +1,4 @@
+/* eslint-disable no-sparse-arrays */
 import React, {useState} from 'react';
 import {
   View,
@@ -7,8 +8,9 @@ import {
   TouchableOpacity,
   NativeSyntheticEvent,
   TextInputChangeEventData,
-  //   Alert,
+  TouchableWithoutFeedback,
   Platform,
+  Keyboard,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import CountryPicker from 'react-native-country-picker-modal';
@@ -30,7 +32,7 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
     mobile: false,
   });
   const userDecoder: Decoder<Partial<User>> = Decoder.object({
-    countryCode: Decoder.string,
+    country_code: Decoder.string,
     mobile: Decoder.string.satisfy({
       predicate: (arg: string) => arg.length >= 9,
       failureMessage: 'The mobile must be at least 9 digits long',
@@ -38,7 +40,7 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
   });
   const baseUser: LoginPayload = {
     mobile: '',
-    countryCode: '234',
+    country_code: '234',
   };
   const [formErrors, setFormErrors] = useState<any>({});
   const [isLoading] = useState<boolean>(false);
@@ -48,44 +50,9 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
   const [countryCode, setCountryCode] = useState<CountryCode>('NG');
 
   const handleSignIn = async () => {
-    navigation.push('SignInVerification');
-    return;
-    // setLoading(true);
-    // try {
-    //   let cleanMobile = user.mobile;
-    //   if (user.mobile.startsWith('0')) {
-    //     cleanMobile = user.mobile.substring(1);
-    //   }
-    //   const newMobileString = `${user.countryCode}${cleanMobile}`.replace(
-    //     /\s/g,
-    //     '',
-    //   );
-    //   const modifiedUser = {
-    //     ...user,
-    //     mobile: newMobileString,
-    //   };
-    //   const response = await userCheck({
-    //     mobiles: [newMobileString],
-    //   });
-    //   const userObj = response.users[0];
-    //   if (response.users.length === 0) {
-    //     navigation.replace('Register');
-    //     return;
-    //   } else if (userObj.firstname === null || userObj.lastname === null) {
-    //     await sendOtp(modifiedUser);
-    //     navigation.replace('SignInVerification');
-    //   } else if (userObj.firstname !== null && userObj.lastname !== null) {
-    //     await sendOtp(modifiedUser);
-    //     navigation.replace('SignInVerification');
-    //     return;
-    //   }
-    // } catch (err: any) {
-    //   setLoading(false);
-    //   if (err?.response?.data) {
-    //     Alert.alert('Error', err.response.data.message);
-    //   }
-    // }
-    // setLoading(false);
+    navigation.push('SignInVerification', {
+      mobile: `${user.country_code}${user.mobile}`,
+    });
   };
 
   const hasFormErrors = (errors: any) => {
@@ -102,7 +69,7 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
 
   const onSelect = (country: Country) => {
     setCountryCode(country.cca2);
-    user.countryCode = country.callingCode.toString();
+    user.country_code = country.callingCode.toString();
     setShowPicker(false);
   };
 
@@ -128,104 +95,106 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
 
   return (
     <Layout>
-      <Header title="Welcome Back 🤗">
-        <Text style={styles.subHeader}>Login to your Account</Text>
-      </Header>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={{flex: 1}}>
+          <Header title="Welcome Back 🤗">
+            <Text style={styles.subHeader}>Login to your Account</Text>
+          </Header>
 
-      <Text style={[styles.subHeader, {marginTop: scaleHeight(50)}]}>
-        Enter your phone number
-      </Text>
-      <View style={styles.bigInputBox}>
-        <TouchableOpacity
-          onPress={() => setShowPicker(true)}
-          // eslint-disable-next-line no-sparse-arrays
-          style={[
-            styles.smallBox,
-            styles.inputBox,
-            hasFormFieldBeenTouched.mobile &&
-              !!getFieldValidationError('mobile', formErrors) &&
-              styles.errorInput,
-            hasFormFieldBeenTouched.mobile &&
-              !getFieldValidationError('mobile', formErrors) &&
-              styles.successInput,
-            ,
-          ]}>
-          <CountryPicker
-            {...{
-              countryCode,
-              withFilter: true,
-              withFlag: true,
-              withAlphaFilter: false,
-              withCallingCode: true,
-              withEmoji: true,
-              onSelect,
-              preferredCountries: ['NG'],
-              onClose,
-            }}
-            visible={showPicker}
-          />
-          <Text style={styles.countryText}>
-            {user.countryCode !== '' ? user.countryCode : ''}
+          <Text style={[styles.subHeader, {marginTop: scaleHeight(50)}]}>
+            Enter your phone number
           </Text>
-          <MaterialIcons
-            name="arrow-drop-down"
-            size={16}
-            color={StyleGuide.Colors.black}
-          />
-        </TouchableOpacity>
-        <View
-          // eslint-disable-next-line no-sparse-arrays
-          style={[
-            styles.bigBox,
-            styles.inputBox,
-            hasFormFieldBeenTouched.mobile &&
-              !!getFieldValidationError('mobile', formErrors) &&
-              styles.errorInput,
-            hasFormFieldBeenTouched.mobile &&
-              !getFieldValidationError('mobile', formErrors) &&
-              styles.successInput,
-            ,
-          ]}>
-          <TextInput
-            placeholder={'Phone Number'}
-            placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
-            onChange={e => onChange(e, 'mobile')}
-            editable={user.countryCode === '' ? false : true}
-            keyboardType={'number-pad'}
-            style={styles.colorBlack}
-          />
-        </View>
-      </View>
-      {!!getFieldValidationError('mobile', formErrors) && (
-        <Text style={styles.errorMsgText}>{formErrors?.mobile.error!}</Text>
-      )}
+          <View style={styles.bigInputBox}>
+            <TouchableOpacity
+              onPress={() => setShowPicker(true)}
+              style={[
+                styles.smallBox,
+                styles.inputBox,
+                hasFormFieldBeenTouched.mobile &&
+                  !!getFieldValidationError('mobile', formErrors) &&
+                  styles.errorInput,
+                hasFormFieldBeenTouched.mobile &&
+                  !getFieldValidationError('mobile', formErrors) &&
+                  styles.successInput,
+                ,
+              ]}>
+              <CountryPicker
+                {...{
+                  countryCode,
+                  withFilter: true,
+                  withFlag: true,
+                  withAlphaFilter: false,
+                  withCallingCode: true,
+                  withEmoji: true,
+                  onSelect,
+                  preferredCountries: ['NG'],
+                  onClose,
+                }}
+                visible={showPicker}
+              />
+              <Text style={styles.countryText}>
+                {user.country_code !== '' ? user.country_code : ''}
+              </Text>
+              <MaterialIcons
+                name="arrow-drop-down"
+                size={16}
+                color={StyleGuide.Colors.black}
+              />
+            </TouchableOpacity>
+            <View
+              style={[
+                styles.bigBox,
+                styles.inputBox,
+                hasFormFieldBeenTouched.mobile &&
+                  !!getFieldValidationError('mobile', formErrors) &&
+                  styles.errorInput,
+                hasFormFieldBeenTouched.mobile &&
+                  !getFieldValidationError('mobile', formErrors) &&
+                  styles.successInput,
+                ,
+              ]}>
+              <TextInput
+                placeholder={'Phone Number'}
+                placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
+                onChange={e => onChange(e, 'mobile')}
+                editable={user.country_code === '' ? false : true}
+                keyboardType={'number-pad'}
+                style={styles.colorBlack}
+              />
+            </View>
+          </View>
+          {!!getFieldValidationError('mobile', formErrors) && (
+            <Text style={styles.errorMsgText}>{formErrors?.mobile.error!}</Text>
+          )}
 
-      <View style={styles.subtext}>
-        <MonieeButton
-          title="Continue"
-          mode={
-            hasFormBeenTouched(hasFormFieldBeenTouched) &&
-            !hasFormErrors(formErrors)
-              ? 'primary'
-              : 'neutral'
-          }
-          disabled={
-            !(
-              hasFormBeenTouched(hasFormFieldBeenTouched) &&
-              !hasFormErrors(formErrors)
-            )
-          }
-          onPress={handleSignIn}
-          isLoading={isLoading}
-        />
-      </View>
-      <View>
-        <Text
-          onPress={() => navigation.push('Register')}
-          style={[styles.subHeader, styles.extraStyle]}>
-          New here, <Text style={styles.createText}>Create an account</Text>
-        </Text>
-      </View>
+          <View style={styles.subtext}>
+            <MonieeButton
+              title="Continue"
+              mode={
+                hasFormBeenTouched(hasFormFieldBeenTouched) &&
+                !hasFormErrors(formErrors)
+                  ? 'primary'
+                  : 'neutral'
+              }
+              disabled={
+                !(
+                  hasFormBeenTouched(hasFormFieldBeenTouched) &&
+                  !hasFormErrors(formErrors)
+                )
+              }
+              onPress={handleSignIn}
+              isLoading={isLoading}
+            />
+          </View>
+          <View>
+            <Text
+              onPress={() => navigation.push('Register')}
+              style={[styles.subHeader, styles.extraStyle]}>
+              New here, <Text style={styles.createText}>Create an account</Text>
+            </Text>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
     </Layout>
   );
 };

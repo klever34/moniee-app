@@ -8,14 +8,12 @@ import MonieeActionSheet from './MonieeActionSheet';
 
 type TransactionPinProps = {
   screen?: 'default' | 'done';
-  //   onConfirm: () => void;
-  onDone: () => void;
+  onDone: (pin: string) => void;
   actionSheetRef: any;
 };
 
 const TransactionPin = ({
   screen = 'default',
-  //   onConfirm,
   onDone,
   actionSheetRef,
 }: TransactionPinProps) => {
@@ -23,10 +21,8 @@ const TransactionPin = ({
   const [defaultPin, setPIN] = useState<string>('');
 
   useEffect(() => {
-    console.log({defaultPin});
     if (defaultPin.length === 4) {
-      console.log('it is done ', defaultPin);
-      onDone();
+      onDone(defaultPin);
     }
   }, [defaultPin, onDone]);
 
@@ -36,14 +32,12 @@ const TransactionPin = ({
     }
     if (numericKey === '<' && defaultPin.length !== 0) {
       const newString = defaultPin.slice(0, defaultPin.length - 1);
-      console.log({newString});
       setPIN(newString);
     } else if (!isNaN(numericKey) && defaultPin.length < 4) {
       setPIN(`${defaultPin}${numericKey}`);
     } else {
       return;
     }
-    // console.log({defaultPin});
   };
 
   return (

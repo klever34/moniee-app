@@ -24,9 +24,10 @@ const SecurePassword: React.FC<ScreenProps<'SecurePassword'>> = ({
 
   useEffect(() => {
     Keyboard.dismiss();
-    console.log({defaultOtp});
     if (defaultOtp.length === 4) {
-      navigation.push('ConfirmPassword');
+      navigation.push('ConfirmPassword', {
+        pin: defaultOtp,
+      });
     }
   }, [defaultOtp, navigation]);
 
@@ -36,20 +37,17 @@ const SecurePassword: React.FC<ScreenProps<'SecurePassword'>> = ({
   };
 
   const getKeyString = (numericKey: any) => {
-    // console.log({numericKey});
     if (numericKey === 'c') {
       setOTP('');
     }
     if (numericKey === '<' && defaultOtp.length !== 0) {
       const newString = defaultOtp.slice(0, defaultOtp.length - 1);
-      console.log({newString});
       setOTP(newString);
     } else if (!isNaN(numericKey) && defaultOtp.length < 4) {
       setOTP(`${defaultOtp}${numericKey}`);
     } else {
       return;
     }
-    // console.log({defaultOtp});
   };
 
   return (
@@ -74,7 +72,6 @@ const SecurePassword: React.FC<ScreenProps<'SecurePassword'>> = ({
               onCodeFilled={handleVerifyOtp}
               onCodeChanged={code => {
                 Keyboard.dismiss();
-                console.log({code});
                 setOTP(code);
               }}
               editable={false}

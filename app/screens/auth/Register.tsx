@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   NativeSyntheticEvent,
   TextInputChangeEventData,
-  //   Alert,
+  TouchableWithoutFeedback,
   Platform,
+  Alert,
+  Keyboard,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import CountryPicker from 'react-native-country-picker-modal';
@@ -19,7 +21,7 @@ import StyleGuide from '../../assets/style-guide';
 import Header from '../../components/Header';
 import Layout from '../../components/Layout';
 import MonieeButton from '../../components/MonieeButton';
-import {LoginPayload, User} from '../../contexts/User';
+import {LoginPayload, sendOtp, User} from '../../contexts/User';
 import {getFieldValidationError, scaleHeight, scaleWidth} from '../../utils';
 import {scaledSize} from '../../assets/style-guide/typography';
 
@@ -30,7 +32,7 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
     mobile: false,
   });
   const userDecoder: Decoder<Partial<User>> = Decoder.object({
-    countryCode: Decoder.string,
+    country_code: Decoder.string,
     mobile: Decoder.string.satisfy({
       predicate: (arg: string) => arg.length >= 9,
       failureMessage: 'The mobile must be at least 9 digits long',
@@ -38,54 +40,42 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
   });
   const baseUser: LoginPayload = {
     mobile: '',
-    countryCode: '234',
+    country_code: '234',
   };
   const [formErrors, setFormErrors] = useState<any>({});
-  const [isLoading] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [user, setUser] = useState<LoginPayload>(baseUser);
   //@ts-ignore
   const [countryCode, setCountryCode] = useState<CountryCode>('NG');
 
-  const handleSignIn = async () => {
-    navigation.push('OTP');
-    return;
-    // setLoading(true);
-    // try {
-    //   let cleanMobile = user.mobile;
-    //   if (user.mobile.startsWith('0')) {
-    //     cleanMobile = user.mobile.substring(1);
-    //   }
-    //   const newMobileString = `${user.countryCode}${cleanMobile}`.replace(
-    //     /\s/g,
-    //     '',
-    //   );
-    //   const modifiedUser = {
-    //     ...user,
-    //     mobile: newMobileString,
-    //   };
-    //   const response = await userCheck({
-    //     mobiles: [newMobileString],
-    //   });
-    //   const userObj = response.users[0];
-    //   if (response.users.length === 0) {
-    //     navigation.replace('Register');
-    //     return;
-    //   } else if (userObj.firstname === null || userObj.lastname === null) {
-    //     await sendOtp(modifiedUser);
-    //     navigation.replace('SignInVerification');
-    //   } else if (userObj.firstname !== null && userObj.lastname !== null) {
-    //     await sendOtp(modifiedUser);
-    //     navigation.replace('SignInVerification');
-    //     return;
-    //   }
-    // } catch (err: any) {
-    //   setLoading(false);
-    //   if (err?.response?.data) {
-    //     Alert.alert('Error', err.response.data.message);
-    //   }
-    // }
-    // setLoading(false);
+  const handleRegister = async () => {
+    setLoading(true);
+    try {
+      let cleanMobile = user.mobile;
+      if (user.mobile.startsWith('0')) {
+        cleanMobile = user.mobile.substring(1);
+      }
+      const newMobileString = `${user.country_code}${cleanMobile}`.replace(
+        /\s/g,
+        '',
+      );
+      const modifiedUser = {
+        ...user,
+        mobile: newMobileString,
+      };
+
+      await sendOtp({mobile: newMobileString});
+      navigation.push('OTP', {
+        userObj: modifiedUser,
+      });
+    } catch (err: any) {
+      setLoading(false);
+      if (err?.response?.data) {
+        Alert.alert('Error', err.response.data.message);
+      }
+    }
+    setLoading(false);
   };
 
   const hasFormErrors = (errors: any) => {
@@ -102,7 +92,7 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
 
   const onSelect = (country: Country) => {
     setCountryCode(country.cca2);
-    user.countryCode = country.callingCode.toString();
+    user.country_code = country.callingCode.toString();
     setShowPicker(false);
   };
 
@@ -128,95 +118,99 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
 
   return (
     <Layout>
-      <Header title="Let’s begin 🚀" goBack={navigation.goBack}>
-        <Text style={styles.subHeader}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </Text>
-      </Header>
-      <View style={styles.bigInputBox}>
-        <TouchableOpacity
-          onPress={() => setShowPicker(true)}
-          // eslint-disable-next-line no-sparse-arrays
-          style={[
-            styles.smallBox,
-            styles.inputBox,
-            hasFormFieldBeenTouched.mobile &&
-              !!getFieldValidationError('mobile', formErrors) &&
-              styles.errorInput,
-            hasFormFieldBeenTouched.mobile &&
-              !getFieldValidationError('mobile', formErrors) &&
-              styles.successInput,
-            ,
-          ]}>
-          <CountryPicker
-            {...{
-              countryCode,
-              withFilter: true,
-              withFlag: true,
-              withAlphaFilter: false,
-              withCallingCode: true,
-              withEmoji: true,
-              onSelect,
-              preferredCountries: ['NG'],
-              onClose,
-            }}
-            visible={showPicker}
-          />
-          <Text style={styles.countryText}>
-            {user.countryCode !== '' ? user.countryCode : ''}
-          </Text>
-          <MaterialIcons
-            name="arrow-drop-down"
-            size={16}
-            color={StyleGuide.Colors.black}
-          />
-        </TouchableOpacity>
-        <View
-          // eslint-disable-next-line no-sparse-arrays
-          style={[
-            styles.bigBox,
-            styles.inputBox,
-            hasFormFieldBeenTouched.mobile &&
-              !!getFieldValidationError('mobile', formErrors) &&
-              styles.errorInput,
-            hasFormFieldBeenTouched.mobile &&
-              !getFieldValidationError('mobile', formErrors) &&
-              styles.successInput,
-            ,
-          ]}>
-          <TextInput
-            placeholder={'Phone Number'}
-            placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
-            onChange={e => onChange(e, 'mobile')}
-            editable={user.countryCode === '' ? false : true}
-            keyboardType={'number-pad'}
-            style={styles.colorBlack}
-          />
-        </View>
-      </View>
-      {!!getFieldValidationError('mobile', formErrors) && (
-        <Text style={styles.errorMsgText}>{formErrors?.mobile.error!}</Text>
-      )}
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={{flex: 1}}>
+          <Header title="Let’s begin 🚀" goBack={navigation.goBack}>
+            <Text style={styles.subHeader}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            </Text>
+          </Header>
+          <View style={styles.bigInputBox}>
+            <TouchableOpacity
+              onPress={() => setShowPicker(true)}
+              // eslint-disable-next-line no-sparse-arrays
+              style={[
+                styles.smallBox,
+                styles.inputBox,
+                hasFormFieldBeenTouched.mobile &&
+                  !!getFieldValidationError('mobile', formErrors) &&
+                  styles.errorInput,
+                hasFormFieldBeenTouched.mobile &&
+                  !getFieldValidationError('mobile', formErrors) &&
+                  styles.successInput,
+                ,
+              ]}>
+              <CountryPicker
+                {...{
+                  countryCode,
+                  withFilter: true,
+                  withFlag: true,
+                  withAlphaFilter: false,
+                  withCallingCode: true,
+                  withEmoji: true,
+                  onSelect,
+                  preferredCountries: ['NG'],
+                  onClose,
+                }}
+                visible={showPicker}
+              />
+              <Text style={styles.countryText}>
+                {user.country_code !== '' ? user.country_code : ''}
+              </Text>
+              <MaterialIcons
+                name="arrow-drop-down"
+                size={16}
+                color={StyleGuide.Colors.black}
+              />
+            </TouchableOpacity>
+            <View
+              // eslint-disable-next-line no-sparse-arrays
+              style={[
+                styles.bigBox,
+                styles.inputBox,
+                hasFormFieldBeenTouched.mobile &&
+                  !!getFieldValidationError('mobile', formErrors) &&
+                  styles.errorInput,
+                hasFormFieldBeenTouched.mobile &&
+                  !getFieldValidationError('mobile', formErrors) &&
+                  styles.successInput,
+                ,
+              ]}>
+              <TextInput
+                placeholder={'Phone Number'}
+                placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
+                onChange={e => onChange(e, 'mobile')}
+                editable={user.country_code === '' ? false : true}
+                keyboardType={'number-pad'}
+                style={styles.colorBlack}
+              />
+            </View>
+          </View>
+          {!!getFieldValidationError('mobile', formErrors) && (
+            <Text style={styles.errorMsgText}>{formErrors?.mobile.error!}</Text>
+          )}
 
-      <View style={styles.subtext}>
-        <MonieeButton
-          title="Get Started"
-          mode={
-            hasFormBeenTouched(hasFormFieldBeenTouched) &&
-            !hasFormErrors(formErrors)
-              ? 'primary'
-              : 'neutral'
-          }
-          disabled={
-            !(
-              hasFormBeenTouched(hasFormFieldBeenTouched) &&
-              !hasFormErrors(formErrors)
-            )
-          }
-          onPress={handleSignIn}
-          isLoading={isLoading}
-        />
-      </View>
+          <View style={styles.subtext}>
+            <MonieeButton
+              title="Get Started"
+              mode={
+                hasFormBeenTouched(hasFormFieldBeenTouched) &&
+                !hasFormErrors(formErrors)
+                  ? 'primary'
+                  : 'neutral'
+              }
+              disabled={
+                !(
+                  hasFormBeenTouched(hasFormFieldBeenTouched) &&
+                  !hasFormErrors(formErrors)
+                )
+              }
+              onPress={handleRegister}
+              isLoading={isLoading}
+            />
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
     </Layout>
   );
 };

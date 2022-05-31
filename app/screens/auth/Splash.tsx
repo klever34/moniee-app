@@ -1,14 +1,14 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, Image} from 'react-native';
 import StyleGuide from '../../assets/style-guide';
 
 const Splash: React.FC = () => {
   return (
     <View style={styles.container}>
-      {/* <Image
-        source={require('../../assets/images/shara_green.png')}
+      <Image
+        source={require('../../assets/images/logo.png')}
         style={styles.image}
-      /> */}
+      />
     </View>
   );
 };

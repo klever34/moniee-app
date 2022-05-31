@@ -1,7 +1,7 @@
 import {User} from './reducer';
 import {API, setAxiosToken} from '../../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {keysToSnakeCase} from '../../utils';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 export enum UserActions {
   CREATE_NEW_USER = 'CREATE_NEW_USER',
@@ -29,15 +29,21 @@ export type NewUser = {
   authType: string;
 };
 
+export type BankDetailsPayload = {
+  bank: string;
+  account_number: string;
+  bvn: string;
+};
+
 export type GenericUserAction = {
   type: UserActions;
   payload?: any;
 };
 
-type CreateNewUserAction = {
-  type: UserActions.CREATE_NEW_USER;
-  payload: User;
-};
+// type CreateNewUserAction = {
+//   type: UserActions.CREATE_NEW_USER;
+//   payload: User;
+// };
 
 // type SignInUserAction = {
 //   type: UserActions.SIGN_IN_USER;
@@ -47,6 +53,7 @@ type CreateNewUserAction = {
 export type RequestMoneyPayload = {
   purpose: string;
   phone_number: string;
+  amount: number;
 };
 
 export const signUp = async (payload: NewUser): Promise<void> => {
@@ -55,24 +62,17 @@ export const signUp = async (payload: NewUser): Promise<void> => {
 
 type VerifyOtpPayload = {
   mobile: string;
-  authType: string;
-  password: string;
+  countryCode: string;
+  otp: string;
 };
 
 type SetPinPayload = {
   pin: string;
-  confirmPin: string;
-  belongs_to?: string;
 };
 
 type fcmTokenPayload = {
   token: string;
   platform?: string;
-};
-
-type VerifyBvnPayload = {
-  idNumber: string;
-  idType: string;
 };
 
 type PatchPayload = {
@@ -103,74 +103,75 @@ export type CardDetails = {
   last4: string;
 };
 
-export type LoginPayload = Pick<User, 'mobile' | 'countryCode'>;
+export type LoginPayload = Pick<User, 'mobile' | 'country_code'>;
+
+export type SignInPayload = {
+  mobile: string;
+  pin: string;
+};
 
 type UserCheckPayload = {
   mobiles: string[];
 };
 
+type RecipientPayload = {
+  mobile: string;
+  amount: number;
+  reason?: string;
+};
+
+type MoneyRequestPayload = {
+  recipients: RecipientPayload[];
+  pin?: string;
+};
+
 const forgeUserData = (apiResponse: any) => {
-  const coreUserData = apiResponse.data.data;
+  const coreUserData = apiResponse.data;
   const userDetails: User = {
     id: coreUserData?.user?.id,
-    firstname: coreUserData?.user?.firstname,
-    lastname: coreUserData?.user?.lastname,
+    first_name: coreUserData?.user?.first_name,
+    last_name: coreUserData?.user?.last_name,
     mobile: coreUserData?.user?.mobile,
     email: coreUserData?.user?.email,
-    countryCode: coreUserData?.user?.country_code,
-    token: coreUserData?.credentials?.token,
-    is_identity_verified: coreUserData.user.is_identity_verified,
+    country_code: coreUserData?.user?.country_code,
+    token: coreUserData?.token,
+    is_active: coreUserData.user.is_active,
     wallet: coreUserData?.wallet,
     score: coreUserData?.score,
-    bills: coreUserData.bills,
-    ux_cam_id: coreUserData?.ux_cam_id,
+    middle_name: coreUserData?.user?.middle_name,
+    is_new: coreUserData?.user?.is_new,
+    avatar_url: coreUserData?.user?.avatar_url,
+    dob: coreUserData?.user?.dob,
   };
   return userDetails;
 };
 
-export const verifyOtp = async (
-  payload: VerifyOtpPayload,
-): Promise<CreateNewUserAction> => {
-  const fetchResponse = await API.post(
-    '/customers/login',
-    keysToSnakeCase(payload),
-  );
+export const verifyOtp = async (payload: VerifyOtpPayload): Promise<any> => {
+  const fetchResponse = await API.post('/auth/signup', payload);
   const userDetails = forgeUserData(fetchResponse);
-
-  await AsyncStorage.setItem('userDetails', JSON.stringify(userDetails));
+  await EncryptedStorage.setItem('userDetails', JSON.stringify(userDetails));
+  await EncryptedStorage.setItem('user-id', JSON.stringify(userDetails.id));
   setAxiosToken(userDetails.token);
-
-  return {
-    type: UserActions.CREATE_NEW_USER,
-    payload: userDetails,
-  };
+  return userDetails;
 };
 
 export const sendOtp = async (
-  payload: Pick<NewUser, 'countryCode' | 'mobile'>,
+  payload: Pick<NewUser, 'mobile'>,
 ): Promise<void> => {
-  await API.post('/auth/otp', keysToSnakeCase(payload));
+  const res = await API.post('/auth/signup/otp', payload);
+  console.log(res.data);
 };
 
 export const saveContacts = async (payload: ContactsData[]): Promise<void> => {
   await API.post('/customers/phonebook', payload);
 };
 
-export const setUserPin = async (payload: SetPinPayload): Promise<void> => {
-  await API.post('/pin', keysToSnakeCase(payload));
-};
-
-export const verifyUserBvn = async (
-  payload: VerifyBvnPayload,
-  userDetails: User,
-): Promise<void> => {
-  try {
-    await API.put('/identity/verify', payload);
-    userDetails.is_identity_verified = true;
-    await AsyncStorage.setItem('userDetails', JSON.stringify(userDetails));
-  } catch (error) {
-    throw error;
-  }
+export const setUserPin = async (
+  payload: SetPinPayload,
+  user_id: number,
+): Promise<any> => {
+  const res = await API.patch(`/user/${user_id}/pin`, keysToSnakeCase(payload));
+  return res.data;
 };
 
 export const getUserDashboardData = async (): Promise<User> => {
@@ -182,14 +183,14 @@ export const getUserDashboardData = async (): Promise<User> => {
 export const updateUserState = async (
   partialUser: Partial<User>,
 ): Promise<GenericUserAction> => {
-  const userDetailsStr = await AsyncStorage.getItem('userDetails');
+  const userDetailsStr = await EncryptedStorage.getItem('userDetails');
   let userDetails = JSON.parse(userDetailsStr as string);
   userDetails = {
     ...userDetails,
     ...partialUser,
     token: userDetails.token,
   };
-  await AsyncStorage.setItem('userDetails', JSON.stringify(userDetails));
+  await EncryptedStorage.setItem('userDetails', JSON.stringify(userDetails));
   return {
     type: UserActions.REFRESH_USER,
     payload: {
@@ -200,21 +201,21 @@ export const updateUserState = async (
 };
 
 export const saveUserCard = async (payload: PaystackPayload): Promise<any> => {
-  const result = await API.post('/collections/paystack/initiate-dd', payload);
+  const result = await API.post('', payload);
   return result.data;
 };
 
 export const payWithCard = async (
   payload: Partial<PaystackPayload>,
 ): Promise<any> => {
-  const result = await API.post('/collections/paystack/pay-with-card', payload);
+  const result = await API.post('', payload);
   return result.data;
 };
 
 export const getCardDetails = async (
   payload: CardDetailsPayload,
 ): Promise<any> => {
-  const result = await API.post('/collections/paystack/card-lookup', payload);
+  const result = await API.post('', payload);
   return result.data;
 };
 
@@ -230,7 +231,7 @@ export const patchUserData = async (payload: PatchPayload): Promise<any> => {
 export const deleteDebitCard = async (
   payload: CardDetailsPayload,
 ): Promise<any> => {
-  const result = await API.post('/collections/paystack/delete-card', payload);
+  const result = await API.post('', payload);
   return result.data;
 };
 
@@ -246,4 +247,51 @@ export const fileUpload = async (formData: FormData): Promise<any> => {
 export const userCheck = async (payload: UserCheckPayload): Promise<any> => {
   const {data: users} = await API.post('/users/check', payload);
   return users.data;
+};
+
+export const getBanks = async (): Promise<any> => {
+  const banksData = await API.get('/banks');
+  return banksData.data.banks;
+};
+
+export const submitBankDetails = async (
+  payload: any,
+  user_id: number,
+): Promise<any> => {
+  const result = await API.post(`user/${user_id}/validation/tier-one`, payload);
+  return result.data;
+};
+
+export const signInUser = async (payload: SignInPayload): Promise<any> => {
+  const result = await API.post('/auth/login', payload);
+  const userDetails = forgeUserData(result);
+  await EncryptedStorage.setItem('userDetails', JSON.stringify(userDetails));
+  await EncryptedStorage.setItem('user-id', JSON.stringify(userDetails.id));
+  return userDetails;
+};
+
+export const fetchWalletBalance = async (): Promise<any> => {
+  console.log('feth');
+
+  try {
+    const user_id = await EncryptedStorage.getItem('user-id');
+    const result = await API.get(`user/${user_id}/balance`);
+    console.log(result);
+
+    return result.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const sendMoney = async (payload: MoneyRequestPayload): Promise<any> => {
+  const result = await API.post('/transfer', payload);
+  return result.data;
+};
+
+export const requestMoney = async (
+  payload: MoneyRequestPayload,
+): Promise<any> => {
+  const result = await API.post('/request', payload);
+  return result.data;
 };

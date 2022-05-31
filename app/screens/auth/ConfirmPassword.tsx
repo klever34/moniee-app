@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext, useCallback} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ActivityIndicator,
   Keyboard,
+  Alert,
 } from 'react-native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import Header from '../../components/Header';
@@ -15,41 +16,72 @@ import StyleGuide from '../../assets/style-guide';
 import {scaleHeight} from '../../utils';
 import {scaledSize} from '../../assets/style-guide/typography';
 import Keypad from '../../components/Keypad';
+import {AuthContext} from '../../../context';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import {setUserPin} from '../../contexts/User';
+import Icon from '../../components/Icon';
+import {setAxiosToken} from '../../services/api';
 
 const ConfirmPassword: React.FC<ScreenProps<'ConfirmPassword'>> = ({
   navigation,
+  route,
 }) => {
   const [defaultOtp, setOTP] = useState<string>('');
-  const [isLoading] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const {signIn} = useContext(AuthContext);
+  const {pin} = route.params;
+  const [hasErrors, setHasErrors] = useState<boolean>(false);
+
+  const handleVerifyOtp = useCallback(async () => {
+    try {
+      setLoading(true);
+      const userObj = JSON.parse(
+        //@ts-ignore
+        await EncryptedStorage.getItem('userDetails'),
+      );
+      const id = await EncryptedStorage.getItem('user-id');
+      const userDetails = await EncryptedStorage.getItem('userDetails');
+      const storedUserState = JSON.parse(userDetails!);
+      setAxiosToken(storedUserState.token);
+      await setUserPin({pin: defaultOtp}, Number(id));
+      await EncryptedStorage.setItem('@user_token', userObj.token);
+      signIn();
+      setLoading(false);
+    } catch (error: any) {
+      console.log(error.response.data);
+      if (error?.response?.data) {
+        Alert.alert('Error', error.response.data.message);
+      }
+      setLoading(false);
+    }
+  }, [defaultOtp, signIn]);
 
   useEffect(() => {
-    Keyboard.dismiss();
-    console.log({defaultOtp});
-    if (defaultOtp.length === 4) {
-      // navigation.push('ConfirmPassword');
-    }
-  }, [defaultOtp, navigation]);
-
-  const handleVerifyOtp = async (code: string) => {
-    console.log({code});
-    return;
-  };
+    try {
+      (async () => {
+        Keyboard.dismiss();
+        if (defaultOtp.length === 4 && defaultOtp === pin) {
+          handleVerifyOtp();
+        } else if (defaultOtp !== pin && defaultOtp.length === 4) {
+          setHasErrors(true);
+        }
+      })();
+    } catch (error: any) {}
+  }, [defaultOtp, handleVerifyOtp, navigation, pin, signIn]);
 
   const getKeyString = (numericKey: any) => {
-    // console.log({numericKey});
+    setHasErrors(false);
     if (numericKey === 'c') {
       setOTP('');
     }
     if (numericKey === '<' && defaultOtp.length !== 0) {
       const newString = defaultOtp.slice(0, defaultOtp.length - 1);
-      console.log({newString});
       setOTP(newString);
     } else if (!isNaN(numericKey) && defaultOtp.length < 4) {
       setOTP(`${defaultOtp}${numericKey}`);
     } else {
       return;
     }
-    // console.log({defaultOtp});
   };
 
   return (
@@ -71,10 +103,9 @@ const ConfirmPassword: React.FC<ScreenProps<'ConfirmPassword'>> = ({
               // autoFocusOnLoad
               codeInputFieldStyle={styles.underlineStyleBase}
               codeInputHighlightStyle={styles.underlineStyleHighLighted}
-              onCodeFilled={handleVerifyOtp}
+              // onCodeFilled={handleVerifyOtp}
               onCodeChanged={code => {
                 Keyboard.dismiss();
-                console.log({code});
                 setOTP(code);
               }}
               editable={false}
@@ -82,6 +113,19 @@ const ConfirmPassword: React.FC<ScreenProps<'ConfirmPassword'>> = ({
               secureTextEntry={true}
             />
           </View>
+          {hasErrors && (
+            <View style={styles.warningBox}>
+              <Icon
+                type="material-icons"
+                name="warning"
+                size={14}
+                color={StyleGuide.Colors.shades.red[25]}
+              />
+              <Text style={[styles.resendText, {marginLeft: 10}]}>
+                PINs do not match
+              </Text>
+            </View>
+          )}
           {isLoading && (
             <View style={styles.isLoading}>
               <ActivityIndicator
@@ -227,6 +271,12 @@ const styles = StyleSheet.create({
     color: 'rgba(0,0,0,0.7)',
   },
   otpBody: {},
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: scaleHeight(10),
+  },
 });
 
 export default ConfirmPassword;

@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useReducer, useState} from 'react';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -13,14 +13,13 @@ import // UserContext,
 // UserActions,
 './app/contexts/User';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {MenuProvider} from 'react-native-popup-menu';
 
 // Screens
 import SignIn from './app/screens/auth/SignIn';
 import SignInVerification from './app/screens/auth/SignInVerification';
 import SecurePassword from './app/screens/auth/SecurePassword';
 import ConfirmPassword from './app/screens/auth/ConfirmPassword';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {setAxiosToken} from './app/services/api';
 import Splash from './app/screens/auth/Splash';
 import {ToastProvider} from 'react-native-toast-notifications';
 import StyleGuide from './app/assets/style-guide';
@@ -38,23 +37,32 @@ import Money from './app/screens/main/MoneyTab/Money';
 import Profile from './app/screens/main/ProfileTab/Profile';
 import Dashboard from './app/screens/main/Home/Dashboard';
 import RequestMoney from './app/screens/main/MoneyTab/RequestMoney';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import {setAxiosToken} from './app/services/api';
+import {initialUserState, reducer, UserActions} from './app/contexts/User';
+import PaymentStatus from './app/screens/main/Payments/PaymentStatus';
+import QRCode from './app/screens/main/MoneyTab/QRCode';
 
 export type RootStackParamList = {
   Welcome: undefined;
   Register: undefined;
   SignIn: undefined;
-  SignInVerification: undefined;
-  OTP: undefined;
+  SignInVerification: {mobile: string};
+  OTP: {
+    userObj: {mobile: string; country_code: string};
+    resetPassword?: boolean;
+  };
   ForgotPin: undefined;
   BankDetails: undefined;
   Money: undefined;
   Profile: undefined;
   SecurePassword: undefined;
-  ConfirmPassword: undefined;
+  ConfirmPassword: {pin: string};
   Dashboard: undefined;
-  RequestMoney: {funds_type: 'request' | 'send'};
+  RequestMoney: {funds_type: 'request' | 'send'; amount: string};
   TabScreens: undefined;
   PaymentStatus: {paymentSuccessStatus: string};
+  QRCode: undefined;
   //
   VerifyIdentity: {typeOfVerification?: string};
   ShareContact: {payload: any};
@@ -100,14 +108,15 @@ export type ScreenProps<T extends keyof RootStackParamList> = {
 };
 
 const App: React.FC<RootStackParamList> = () => {
-  // const [state, dispatch] = useReducer(reducer, initialUserState);
-  // const context = {userState: state, userDispatch: dispatch};
+  const [state, dispatch] = useReducer(reducer, initialUserState);
+  const context = {userState: state, userDispatch: dispatch};
   // let userToken = state.token;
-  // const [splash, setSplash] = React.useState(true);
+  console.log({context});
+
+  const [splash, setSplash] = React.useState(true);
   const [userToken, setUserToken] = useState<null | string>(null);
   // const [isLoading, setIsLoading] = useState(true);
   // const [userStatus, setUserStatus] = useState(null);
-  const [splash, setSplash] = useState(true);
   const [chosenTheme, setChosenTheme] = useState(0);
 
   // type StackProps = {
@@ -199,10 +208,10 @@ const App: React.FC<RootStackParamList> = () => {
               <Icon
                 type="material-icons"
                 name="home-filled"
-                size={24}
+                size={focused ? 30 : 20}
                 color={
                   focused
-                    ? StyleGuide.Colors.white
+                    ? StyleGuide.Colors.primary
                     : StyleGuide.Colors.shades.grey[1450]
                 }
               />
@@ -220,7 +229,7 @@ const App: React.FC<RootStackParamList> = () => {
               <Icon
                 type="ionicons"
                 name="keypad"
-                size={24}
+                size={focused ? 30 : 20}
                 color={
                   focused
                     ? StyleGuide.Colors.white
@@ -242,10 +251,10 @@ const App: React.FC<RootStackParamList> = () => {
               <Icon
                 type="fontawesome5"
                 name="user"
-                size={24}
+                size={focused ? 30 : 20}
                 color={
                   focused
-                    ? StyleGuide.Colors.white
+                    ? StyleGuide.Colors.primary
                     : StyleGuide.Colors.shades.grey[1450]
                 }
               />
@@ -265,6 +274,8 @@ const App: React.FC<RootStackParamList> = () => {
       }}>
       <ParentStack.Screen name="TabScreens" component={AuthScreensNavigator} />
       <ParentStack.Screen name="RequestMoney" component={RequestMoney} />
+      <ParentStack.Screen name="PaymentStatus" component={PaymentStatus} />
+      <ParentStack.Screen name="QRCode" component={QRCode} />
     </ParentStack.Navigator>
   );
 
@@ -300,8 +311,8 @@ const App: React.FC<RootStackParamList> = () => {
     return {
       signIn: async () => {
         try {
-          const value = await AsyncStorage.getItem('@user_token');
-          if (value !== null) {
+          const value = await EncryptedStorage.getItem('@user_token');
+          if (value !== undefined) {
             setUserToken(value);
           } else {
             setUserToken(null);
@@ -310,8 +321,9 @@ const App: React.FC<RootStackParamList> = () => {
       },
       signUp: async () => {
         try {
-          const value = await AsyncStorage.getItem('@user_token');
-          if (value !== null) {
+          const value = await EncryptedStorage.getItem('@user_token');
+
+          if (value !== undefined) {
             setUserToken(value);
           } else {
             setUserToken(null);
@@ -320,13 +332,13 @@ const App: React.FC<RootStackParamList> = () => {
       },
       signOut: async () => {
         try {
-          await AsyncStorage.removeItem('@user_token');
+          await EncryptedStorage.removeItem('@user_token');
           setUserToken(null);
         } catch (e) {}
       },
       // onboarded: async () => {
       //   try {
-      //     const value = await AsyncStorage.getItem('@user_onboarded');
+      //     const value = await EncryptedStorage.getItem('@user_onboarded');
       //     if (value) {
       //       setUserStatus(value);
       //     } else {
@@ -350,8 +362,8 @@ const App: React.FC<RootStackParamList> = () => {
     async function getToken() {
       // setIsLoading(true);
       try {
-        const value = await AsyncStorage.getItem('@user_token');
-        if (value !== null) {
+        const value = await EncryptedStorage.getItem('@user_token');
+        if (value !== undefined) {
           // setIsLoading(false);
           setUserToken(value);
         } else {
@@ -363,21 +375,20 @@ const App: React.FC<RootStackParamList> = () => {
     getToken();
   }, []);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     const userDetails = await AsyncStorage.getItem('userDetails');
-  //     if (userDetails) {
-  //       const storedUserState = JSON.parse(userDetails);
-  //       setAxiosToken(storedUserState.token);
+  useEffect(() => {
+    (async () => {
+      const userDetails = await EncryptedStorage.getItem('userDetails');
+      if (userDetails) {
+        const storedUserState = JSON.parse(userDetails);
+        setAxiosToken(storedUserState.token);
 
-  //       dispatch({
-  //         type: UserActions.SIGN_IN_USER,
-  //         payload: storedUserState,
-  //       });
-  //     }
-  //   })();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+        dispatch({
+          type: UserActions.SIGN_IN_USER,
+          payload: storedUserState,
+        });
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -416,21 +427,23 @@ const App: React.FC<RootStackParamList> = () => {
 
   return (
     <AuthContext.Provider value={authContext}>
-      <NavigationContainer theme={appTheme[chosenTheme]}>
-        <ToastProvider
-          placement="top"
-          duration={5000}
-          animationType="slide-in"
-          animationDuration={250}
-          successColor={StyleGuide.Colors.shades.green[200]}
-          dangerColor={StyleGuide.Colors.shades.red[300]}
-          warningColor={StyleGuide.Colors.shades.orange[200]}
-          normalColor={StyleGuide.Colors.shades.grey[300]}
-          textStyle={styles.toastFontSize}
-          swipeEnabled={true}>
-          <RootStackNavigtor />
-        </ToastProvider>
-      </NavigationContainer>
+      <MenuProvider>
+        <NavigationContainer theme={appTheme[chosenTheme]}>
+          <ToastProvider
+            placement="top"
+            duration={5000}
+            animationType="slide-in"
+            animationDuration={250}
+            successColor={StyleGuide.Colors.shades.green[200]}
+            dangerColor={StyleGuide.Colors.shades.red[300]}
+            warningColor={StyleGuide.Colors.shades.orange[200]}
+            normalColor={StyleGuide.Colors.shades.grey[300]}
+            textStyle={styles.toastFontSize}
+            swipeEnabled={true}>
+            <RootStackNavigtor />
+          </ToastProvider>
+        </NavigationContainer>
+      </MenuProvider>
     </AuthContext.Provider>
   );
 };

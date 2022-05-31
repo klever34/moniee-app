@@ -1,55 +1,31 @@
-import React, {useState, useEffect, useContext} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  // ScrollView,
-  // Alert,
-  ActivityIndicator,
-  Keyboard,
-} from 'react-native';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useState, useEffect, useContext, useCallback} from 'react';
+import {View, Text, StyleSheet, ActivityIndicator, Alert} from 'react-native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import Header from '../../components/Header';
 import {ScreenProps} from '../../../App';
 import Layout from '../../components/Layout';
 import StyleGuide from '../../assets/style-guide';
-// import {sendOtp} from '../../contexts/User';
 import {scaleHeight} from '../../utils';
 import {scaledSize} from '../../assets/style-guide/typography';
 import Keypad from '../../components/Keypad';
 import {AuthContext} from '../../../context';
-// import {verifyOtp} from '../../contexts/User';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import {signInUser} from '../../contexts/User';
 const START_MINUTES = 2;
 const START_SECONDS = 0;
 
 const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
   navigation,
-  // route,
+  route,
 }) => {
-  // const context = useContext(UserContext);
-  // // const user = route.params.user;
-  // const userMobileNumber = `${user.countryCode}${user.mobile}`;
+  const {mobile} = route.params;
   const {signIn} = useContext(AuthContext);
   const [defaultOtp, setOTP] = useState<string>('');
   const [minutes, setMinutes] = useState(START_MINUTES);
   const [seconds, setSeconds] = useState(START_SECONDS);
   const [, setTimerStatus] = useState<boolean>(false);
-  const [isLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    try {
-      (async () => {
-        Keyboard.dismiss();
-        console.log({defaultOtp});
-        if (defaultOtp.length === 4) {
-          // navigation.push('ConfirmPassword');
-          await AsyncStorage.setItem('@user_token', 'hkhkhk');
-          signIn();
-        }
-      })();
-    } catch (error: any) {}
-  }, [defaultOtp, navigation, signIn]);
+  const [isLoading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     let timerInterval = setInterval(() => {
@@ -71,58 +47,36 @@ const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
     };
   });
 
-  const handleVerifyOtp = async (code: string) => {
-    console.log({code});
-    return;
-    // setLoading(true);
-    // try {
-    //   const setUserAction = await verifyOtp({
-    //     mobile: userMobileNumber,
-    //     password: code,
-    //     authType: 'customer',
-    //   });
+  const handleVerifyOtp = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await signInUser({
+        mobile,
+        pin: defaultOtp,
+      });
+      await EncryptedStorage.setItem('@user_token', response.token);
+      signIn();
+      setLoading(false);
+    } catch (err: any) {
+      console.log(err.response);
+      setLoading(false);
+      if (err?.response?.data) {
+        Alert.alert('Error', err.response.data.message);
+      }
+    }
+  }, [defaultOtp, mobile, signIn]);
 
-    //   // if (route.params.shouldUpdateUser) {
-    //   //   await AsyncStorage.setItem('@user-token', setUserAction.payload.token);
-    //   //   navigation.push('Register');
-    //   // } else {
-    //   //   context.userDispatch(setUserAction);
-    //   // }
-
-    //   setLoading(false);
-    // } catch (err: any) {
-    //   setLoading(false);
-    //   if (err?.response?.data) {
-    //     Alert.alert('Error', err.response.data.message);
-    //   }
-    // }
-  };
-
-  // const spaceMobileNumber = (mobile: string) => {
-  //   // if (user.countryCode === '234') {
-  //   //   return mobile.replace(/(\d{3})(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
-  //   // } else {
-  //   //   return mobile.replace(/(\d{3})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4');
-  //   // }
-  // };
-
-  // const resendOTPCode = async () => {
-  //   setMinutes(START_MINUTES);
-  //   setTimerStatus(false);
-  //   setOTP('');
-
-  //   try {
-  //     // await sendOtp({countryCode: user.countryCode, mobile: user.mobile});
-  //     Alert.alert('OTP Resent');
-  //   } catch (err: any) {
-  //     if (err?.response?.data) {
-  //       Alert.alert('Error', err.response.data.message);
-  //     }
-  //   }
-  // };
+  useEffect(() => {
+    try {
+      (async () => {
+        if (defaultOtp.length === 4) {
+          handleVerifyOtp();
+        }
+      })();
+    } catch (error: any) {}
+  }, [defaultOtp, handleVerifyOtp, navigation, signIn]);
 
   const getKeyString = (numericKey: any) => {
-    // console.log({numericKey});
     if (numericKey === 'c') {
       setOTP('');
     }
@@ -135,7 +89,6 @@ const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
     } else {
       return;
     }
-    // console.log({defaultOtp});
   };
 
   return (
@@ -155,10 +108,7 @@ const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
               // autoFocusOnLoad
               codeInputFieldStyle={styles.underlineStyleBase}
               codeInputHighlightStyle={styles.underlineStyleHighLighted}
-              onCodeFilled={handleVerifyOtp}
               onCodeChanged={code => {
-                Keyboard.dismiss();
-                console.log({code});
                 setOTP(code);
               }}
               editable={false}
@@ -169,7 +119,7 @@ const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
           {isLoading && (
             <View style={styles.isLoading}>
               <ActivityIndicator
-                size={'large'}
+                size={'small'}
                 color={StyleGuide.Colors.primary}
               />
             </View>
@@ -178,8 +128,6 @@ const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
         <View style={styles.otpInstructions}>
           <Text
             onPress={() => {
-              console.log('press me');
-
               navigation.push('ForgotPin');
             }}
             style={[

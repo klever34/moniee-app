@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     marginBottom: scaleHeight(5),
   },
   iconStyle: {
-    color: StyleGuide.Colors.shades.grey[100],
+    color: StyleGuide.Colors.black,
   },
   header: {
     fontSize: StyleGuide.Typography[18],

@@ -1,10 +1,11 @@
+/* eslint-disable react-native/no-inline-styles */
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
-// import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {View, StyleSheet, Image, Text, Platform} from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
-// import FeedbackScreen from '../../../components/FeedbackScreen';
+import {scaledSize} from '../../../assets/style-guide/typography';
 import Layout from '../../../components/Layout';
+import MonieeButton from '../../../components/MonieeButton';
 import {scaleHeight, scaleWidth} from '../../../utils';
 
 const PaymentStatus: React.FC<ScreenProps<'PaymentStatus'>> = ({
@@ -13,15 +14,66 @@ const PaymentStatus: React.FC<ScreenProps<'PaymentStatus'>> = ({
 }) => {
   const {paymentSuccessStatus} = route.params;
   const bgColor =
-    paymentSuccessStatus === 'success'
+    paymentSuccessStatus === 'request'
       ? StyleGuide.Colors.shades.green[100]
-      : paymentSuccessStatus === 'info'
+      : paymentSuccessStatus === 'send'
       ? StyleGuide.Colors.white
       : StyleGuide.Colors.shades.red[100];
 
+  const iconRenderer = () => {
+    if (paymentSuccessStatus === 'request') {
+      return (
+        <Image
+          style={styles.image}
+          source={require('../../../assets/images/icon_1.png')}
+        />
+      );
+    } else if (paymentSuccessStatus === 'send') {
+      return (
+        <Image
+          style={styles.image}
+          source={require('../../../assets/images/icon_2.png')}
+        />
+      );
+    } else {
+    }
+  };
+
+  const titleColor =
+    paymentSuccessStatus === 'request'
+      ? styles.pageTitle
+      : styles.pageTitleBlack;
+
+  const subtitleColor =
+    paymentSuccessStatus === 'request'
+      ? styles.pageSubtitle
+      : styles.pageSubtitleBlack;
+
+  const buttonText =
+    paymentSuccessStatus === 'request' ? 'Go Home' : 'Kari me go house';
+
   return (
     <Layout style={{backgroundColor: bgColor}}>
-      <View style={styles.screenContainer}>{/* <FeedbackScreen /> */}</View>
+      <View style={styles.screenContainer}>
+        <View style={styles.descriptionContainer}>
+          {iconRenderer()}
+          <Text style={titleColor}>
+            {paymentSuccessStatus === 'request' ? 'Request Sent' : 'Money Sent'}
+          </Text>
+          <Text style={subtitleColor}>
+            Your request for ₦2,000 to Terry and 5 others has been sent
+          </Text>
+        </View>
+        <MonieeButton
+          title={buttonText}
+          mode={paymentSuccessStatus === 'request' ? 'primary' : 'neutral'}
+          onPress={() => console.log('gotcha')}
+          customStyle={{
+            backgroundColor:
+              paymentSuccessStatus === 'request' ? '#6FCF97' : '#E5F9FF',
+          }}
+        />
+      </View>
     </Layout>
   );
 };
@@ -47,22 +99,42 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     color: StyleGuide.Colors.white,
-    fontSize: StyleGuide.Typography[18],
-    fontWeight: '500',
+    fontSize: scaledSize(18),
     marginBottom: scaleHeight(2),
+    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
   },
   pageSubtitle: {
     color: StyleGuide.Colors.white,
-    fontSize: StyleGuide.Typography[14],
-    marginBottom: scaleHeight(2),
+    fontSize: scaledSize(12),
+    marginTop: scaleHeight(10),
     textAlign: 'center',
+    fontFamily: 'NexaRegular',
   },
   bold: {
     fontWeight: 'bold',
   },
-  viewReceipt: {
-    marginTop: scaleHeight(124),
-    marginBottom: scaleHeight(80),
+  descriptionContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  image: {
+    width: '50%',
+    height: '30%',
+    resizeMode: 'contain',
+  },
+  pageTitleBlack: {
+    color: StyleGuide.Colors.shades.blue[200],
+    fontSize: scaledSize(18),
+    marginBottom: scaleHeight(2),
+    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+  },
+  pageSubtitleBlack: {
+    color: StyleGuide.Colors.shades.grey[25],
+    fontSize: scaledSize(12),
+    marginTop: scaleHeight(10),
+    textAlign: 'center',
+    fontFamily: 'NexaRegular',
   },
 });
 

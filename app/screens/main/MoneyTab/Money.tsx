@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, Platform, TextInput} from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
@@ -7,10 +7,27 @@ import {scaledSize} from '../../../assets/style-guide/typography';
 import Icon from '../../../components/Icon';
 import Keypad from '../../../components/Keypad';
 import MonieeButton from '../../../components/MonieeButton';
+import {fetchWalletBalance} from '../../../contexts/User';
 import {scaleHeight} from '../../../utils';
+import formatNumber from 'format-number';
 
 const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const [moneyValue, setMoneyValue] = useState<string>('');
+  const [balance, setBalance] = useState<number>();
+
+  const formatAsNumber = (arg: number): string => formatNumber()(arg);
+
+  useEffect(() => {
+    try {
+      (async () => {
+        const response = await fetchWalletBalance();
+        setBalance(response.balance);
+        console.log(response.balance);
+      })();
+    } catch (error: any) {
+      console.log(error.response.data);
+    }
+  }, []);
 
   const getKeyString = (numericKey: any) => {
     if (numericKey === 0 && moneyValue.length === 0) {
@@ -18,7 +35,6 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
     }
     if (numericKey === '<' && moneyValue.length !== 0) {
       const newString = moneyValue.slice(0, moneyValue.length - 1);
-      console.log({newString});
       setMoneyValue(newString);
     } else if (!isNaN(numericKey) || numericKey === '.') {
       setMoneyValue(`${moneyValue}${numericKey}`);
@@ -36,10 +52,13 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
           name="qr-code-scanner"
           size={24}
           color={StyleGuide.Colors.white}
+          onPress={() => navigation.push('QRCode')}
         />
         <View style={styles.walletBalance}>
           <Text style={styles.subText}>Wallet Balance</Text>
-          <Text style={styles.moneyText}>₦ 5,200</Text>
+          <Text style={styles.moneyText}>
+            ₦ {balance !== undefined ? formatAsNumber(balance) : '-'}
+          </Text>
         </View>
         <Icon
           type="material-icons"
@@ -77,22 +96,30 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
           <MonieeButton
             title="Request"
             mode={'secondary'}
-            onPress={() =>
+            onPress={() => {
+              if (moneyValue.length === 0) {
+                return;
+              }
               navigation.push('RequestMoney', {
                 funds_type: 'request',
-              })
-            }
+                amount: moneyValue,
+              });
+            }}
           />
         </View>
         <View style={styles.expandBtn}>
           <MonieeButton
             title="Send"
             mode={'secondary'}
-            onPress={() =>
+            onPress={() => {
+              if (moneyValue.length === 0) {
+                return;
+              }
               navigation.push('RequestMoney', {
                 funds_type: 'send',
-              })
-            }
+                amount: moneyValue,
+              });
+            }}
           />
         </View>
       </View>

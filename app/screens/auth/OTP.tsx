@@ -1,40 +1,32 @@
-import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+/* eslint-disable react-native/no-inline-styles */
+import React, {useState, useEffect, useContext} from 'react';
+import {View, Text, StyleSheet, Alert, Platform} from 'react-native';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import Header from '../../components/Header';
 import {ScreenProps} from '../../../App';
 import Layout from '../../components/Layout';
 import StyleGuide from '../../assets/style-guide';
-// import {sendOtp} from '../../contexts/User';
 import {scaleHeight} from '../../utils';
 import {scaledSize} from '../../assets/style-guide/typography';
 import Icon from '../../components/Icon';
 import MonieeButton from '../../components/MonieeButton';
+import {sendOtp, verifyOtp} from '../../contexts/User';
 // import {verifyOtp} from '../../contexts/User';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import {AuthContext} from '../../../context';
 
 const START_MINUTES = 2;
 const START_SECONDS = 0;
 
-const OTP: React.FC<ScreenProps<'OTP'>> = ({
-  navigation,
-  // route,
-}) => {
-  // const context = useContext(UserContext);
-  // // const user = route.params.user;
-  // const userMobileNumber = `${user.countryCode}${user.mobile}`;
+const OTP: React.FC<ScreenProps<'OTP'>> = ({navigation, route}) => {
+  //   const context = useContext(UserContext);
+  const {userObj, resetPassword} = route.params;
+  const {signIn} = useContext(AuthContext);
   const [defaultOtp, setOTP] = useState<string>('');
   const [minutes, setMinutes] = useState(START_MINUTES);
   const [seconds, setSeconds] = useState(START_SECONDS);
   const [isTimerExpired, setTimerStatus] = useState<boolean>(false);
-  const [isLoading] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
   const [hasErrors] = useState<boolean>(false);
 
   useEffect(() => {
@@ -57,38 +49,34 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({
     };
   });
 
-  // const handleVerifyOtp = async (code: string) => {
-  //   setLoading(true);
-  //   try {
-  //     const setUserAction = await verifyOtp({
-  //       mobile: userMobileNumber,
-  //       password: code,
-  //       authType: 'customer',
-  //     });
-
-  //     // if (route.params.shouldUpdateUser) {
-  //     //   await AsyncStorage.setItem('@user-token', setUserAction.payload.token);
-  //     //   navigation.push('Register');
-  //     // } else {
-  //     //   context.userDispatch(setUserAction);
-  //     // }
-
-  //     setLoading(false);
-  //   } catch (err: any) {
-  //     setLoading(false);
-  //     if (err?.response?.data) {
-  //       Alert.alert('Error', err.response.data.message);
-  //     }
-  //   }
-  // };
-
-  // const spaceMobileNumber = (mobile: string) => {
-  //   // if (user.countryCode === '234') {
-  //   //   return mobile.replace(/(\d{3})(\d{3})(\d{3})(\d{4})/, '$1 $2 $3 $4');
-  //   // } else {
-  //   //   return mobile.replace(/(\d{3})(\d{3})(\d{3})(\d{3})/, '$1 $2 $3 $4');
-  //   // }
-  // };
+  const handleVerifyOtp = async () => {
+    setLoading(true);
+    try {
+      const response = await verifyOtp({
+        mobile: userObj.mobile,
+        otp: defaultOtp,
+        countryCode: userObj.country_code,
+      });
+      if (resetPassword && resetPassword === true) {
+        setLoading(false);
+        navigation.push('SecurePassword');
+        return;
+      }
+      if (response.is_new) {
+        setLoading(false);
+        navigation.push('BankDetails');
+        return;
+      }
+      await EncryptedStorage.setItem('@user_token', response.token);
+      signIn();
+      setLoading(false);
+    } catch (err: any) {
+      setLoading(false);
+      if (err?.response?.data) {
+        Alert.alert('Error', err.response.data.message);
+      }
+    }
+  };
 
   const resendOTPCode = async () => {
     setMinutes(START_MINUTES);
@@ -96,7 +84,7 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({
     setOTP('');
 
     try {
-      // await sendOtp({countryCode: user.countryCode, mobile: user.mobile});
+      await sendOtp({mobile: userObj.mobile});
       Alert.alert('OTP Resent');
     } catch (err: any) {
       if (err?.response?.data) {
@@ -107,105 +95,87 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({
 
   return (
     <Layout>
-      <ScrollView style={styles.page}>
-        <View style={styles.main}>
-          <Header title="Verification 🛡" goBack={navigation.goBack}>
-            <Text style={styles.subHeader}>
-              Lacus integer imperdiet lacinia consectetur erat scelerisque.
-            </Text>
-          </Header>
-          <View style={styles.body}>
-            <OTPInputView
-              style={styles.otpView}
-              code={defaultOtp}
-              pinCount={4}
-              keyboardType={'number-pad'}
-              // autoFocusOnLoad
-              codeInputFieldStyle={
-                hasErrors ? styles.errorBox : styles.underlineStyleBase
-              }
-              codeInputHighlightStyle={
-                hasErrors ? styles.errorBox : styles.underlineStyleHighLighted
-              }
-              //   onCodeFilled={handleVerifyOtp}
-              onCodeChanged={code => {
-                console.log({code});
-                setOTP(code);
-              }}
-              placeholderCharacter={'ᐧ'}
-            />
-            {isLoading && (
-              <View style={styles.isLoading}>
-                <ActivityIndicator
-                  size={'large'}
-                  color={StyleGuide.Colors.primary}
-                />
-              </View>
-            )}
-          </View>
-          <View style={styles.otpInstructions}>
+      <View style={styles.main}>
+        <Header title="Verification 🛡" goBack={navigation.goBack}>
+          <Text style={styles.subHeader}>
+            Lacus integer imperdiet lacinia consectetur erat scelerisque.
+          </Text>
+        </Header>
+        <View style={styles.body}>
+          <OTPInputView
+            style={styles.otpView}
+            code={defaultOtp}
+            pinCount={4}
+            keyboardType={'number-pad'}
+            // autoFocusOnLoad
+            codeInputFieldStyle={
+              hasErrors ? styles.errorBox : styles.underlineStyleBase
+            }
+            codeInputHighlightStyle={
+              hasErrors ? styles.errorBox : styles.underlineStyleHighLighted
+            }
+            //   onCodeFilled={handleVerifyOtp}
+            onCodeChanged={code => {
+              setOTP(code);
+            }}
+            placeholderCharacter={'ᐧ'}
+          />
+        </View>
+        <View style={styles.otpInstructions}>
+          {!isTimerExpired && (
             <Text onPress={resendOTPCode} style={styles.resendText}>
               Verification code can be resent in
             </Text>
-            {hasErrors && (
-              <View style={styles.warningBox}>
-                <Icon
-                  type="material-icons"
-                  name="warning"
-                  size={14}
-                  color={StyleGuide.Colors.shades.red[25]}
-                />
-                <Text
-                  onPress={resendOTPCode}
-                  style={[styles.resendText, {marginLeft: 10}]}>
-                  Wrong Code Entered
-                </Text>
-              </View>
-            )}
-            {!isTimerExpired && (
+          )}
+          {hasErrors && (
+            <View style={styles.warningBox}>
+              <Icon
+                type="material-icons"
+                name="warning"
+                size={14}
+                color={StyleGuide.Colors.shades.red[25]}
+              />
               <Text
-                style={[
-                  styles.resendText,
-                  {
-                    fontSize: scaledSize(14),
-                    marginVertical: scaleHeight(10),
-                    color: StyleGuide.Colors.shades.magenta[25],
-                  },
-                ]}>
-                {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+                onPress={resendOTPCode}
+                style={[styles.resendText, {marginLeft: 10}]}>
+                Wrong Code Entered
               </Text>
-            )}
-            {isTimerExpired && (
-              <Text
-                onPress={() => (isTimerExpired ? resendOTPCode() : null)}
-                style={styles.activeResendButton}>
-                Resend OTP
-              </Text>
-            )}
-          </View>
-          <View style={styles.subtext}>
-            <MonieeButton
-              title="Get Started"
-              //   mode={
-              //     hasFormBeenTouched(hasFormFieldBeenTouched) &&
-              //     !hasFormErrors(formErrors)
-              //       ? 'primary'
-              //       : 'neutral'
-              //   }
-              //   disabled={
-              //     !(
-              //       hasFormBeenTouched(hasFormFieldBeenTouched) &&
-              //       !hasFormErrors(formErrors)
-              //     )
-              //   }
-              onPress={() => {
-                navigation.push('BankDetails');
-              }}
-              isLoading={isLoading}
-            />
-          </View>
+            </View>
+          )}
+          {!isTimerExpired && (
+            <Text
+              style={[
+                styles.resendText,
+                {
+                  fontSize: scaledSize(14),
+                  marginVertical: scaleHeight(10),
+                  color: StyleGuide.Colors.shades.magenta[25],
+                  fontFamily:
+                    Platform.OS === 'ios' ? 'NexaRegular' : 'NexaExtraBold',
+                },
+              ]}>
+              {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+            </Text>
+          )}
+          {isTimerExpired && (
+            <Text
+              onPress={() => (isTimerExpired ? resendOTPCode() : null)}
+              style={styles.activeResendButton}>
+              Resend OTP
+            </Text>
+          )}
         </View>
-      </ScrollView>
+      </View>
+      <View style={styles.subtext}>
+        <MonieeButton
+          title="Submit"
+          disabled={defaultOtp.length < 4}
+          onPress={() => {
+            handleVerifyOtp();
+          }}
+          isLoading={isLoading}
+        />
+      </View>
     </Layout>
   );
 };

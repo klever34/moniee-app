@@ -1,14 +1,18 @@
-import {Bill} from '../MyBills/reducer';
+// import {Bill} from '../MyBills/reducer';
 import {GenericUserAction, UserActions} from './actions';
 
 export type User = {
-  firstname: string;
-  lastname: string;
+  first_name: string;
+  last_name: string;
+  middle_name: string;
   email?: string;
   mobile: string;
-  countryCode: string;
+  country_code: string;
   token: string;
-  is_identity_verified: boolean;
+  is_active: boolean;
+  is_new: boolean;
+  avatar_url: string;
+  dob: string;
   wallet: {
     account_details: {
       bank_name: string;
@@ -19,19 +23,22 @@ export type User = {
     card_details: {};
   };
   score: number;
-  bills: Bill[];
-  ux_cam_id: string;
+  // bills: Bill[];
   id?: number | null;
 };
 
 export const initialUserState: User = {
   id: null,
-  firstname: '',
-  lastname: '',
+  first_name: '',
+  last_name: '',
+  middle_name: '',
   mobile: '',
-  countryCode: '',
+  country_code: '',
   token: '',
-  is_identity_verified: false,
+  is_active: false,
+  is_new: false,
+  avatar_url: '',
+  dob: '',
   wallet: {
     account_details: {
       bank_name: '',
@@ -42,8 +49,6 @@ export const initialUserState: User = {
     card_details: {},
   },
   score: 0,
-  bills: [],
-  ux_cam_id: '',
 };
 
 export const reducer = (state: User, action: GenericUserAction) => {
