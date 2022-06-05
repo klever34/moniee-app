@@ -1,6 +1,20 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, Platform, TextInput} from 'react-native';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TextInput,
+  Alert,
+  AppState,
+} from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
@@ -10,24 +24,57 @@ import MonieeButton from '../../../components/MonieeButton';
 import {fetchWalletBalance} from '../../../contexts/User';
 import {scaleHeight} from '../../../utils';
 import formatNumber from 'format-number';
+import {AuthContext} from '../../../../context';
+import {useIsFocused} from '@react-navigation/native';
 
 const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const [moneyValue, setMoneyValue] = useState<string>('');
   const [balance, setBalance] = useState<number>();
+  const {signOut} = useContext(AuthContext);
+  const isFocused = useIsFocused();
 
   const formatAsNumber = (arg: number): string => formatNumber()(arg);
+
+  const logOutUser = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
+
+  const appState = useRef(AppState.currentState);
+  const [appStateVisible, setAppStateVisible] = useState(appState.current);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App has come to the foreground!');
+      }
+
+      appState.current = nextAppState;
+      setAppStateVisible(appState.current);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     try {
       (async () => {
         const response = await fetchWalletBalance();
-        setBalance(response.balance);
-        console.log(response.balance);
+        if (response === 401) {
+          Alert.alert('Info', 'Your session has timed out, please login again');
+          await logOutUser();
+          return;
+        }
+        setBalance(response.data.balance);
       })();
     } catch (error: any) {
-      console.log(error.response.data);
+      console.log(error);
     }
-  }, []);
+  }, [logOutUser, isFocused, appStateVisible]);
 
   const getKeyString = (numericKey: any) => {
     if (numericKey === 0 && moneyValue.length === 0) {
@@ -52,7 +99,7 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
           name="qr-code-scanner"
           size={24}
           color={StyleGuide.Colors.white}
-          onPress={() => navigation.push('QRCode')}
+          onPress={() => navigation.push('QRCodeScreen')}
         />
         <View style={styles.walletBalance}>
           <Text style={styles.subText}>Wallet Balance</Text>
@@ -160,7 +207,7 @@ const styles = StyleSheet.create({
   },
   moneyText: {
     color: StyleGuide.Colors.white,
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     fontSize: scaledSize(20),
   },
   subText: {
@@ -172,7 +219,7 @@ const styles = StyleSheet.create({
   currency: {
     fontSize: scaledSize(46),
     color: StyleGuide.Colors.white,
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
   walletBalance: {
     backgroundColor: 'rgba(159, 86, 212, 0.1)',

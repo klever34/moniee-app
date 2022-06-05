@@ -125,6 +125,11 @@ type MoneyRequestPayload = {
   pin?: string;
 };
 
+type WithdrawalPayload = {
+  amount: number;
+  pin: string;
+};
+
 const forgeUserData = (apiResponse: any) => {
   const coreUserData = apiResponse.data;
   const userDetails: User = {
@@ -151,7 +156,7 @@ export const verifyOtp = async (payload: VerifyOtpPayload): Promise<any> => {
   const userDetails = forgeUserData(fetchResponse);
   await EncryptedStorage.setItem('userDetails', JSON.stringify(userDetails));
   await EncryptedStorage.setItem('user-id', JSON.stringify(userDetails.id));
-  setAxiosToken(userDetails.token);
+  setAxiosToken();
   return userDetails;
 };
 
@@ -271,21 +276,19 @@ export const signInUser = async (payload: SignInPayload): Promise<any> => {
 };
 
 export const fetchWalletBalance = async (): Promise<any> => {
-  console.log('feth');
-
+  setAxiosToken();
   try {
     const user_id = await EncryptedStorage.getItem('user-id');
     const result = await API.get(`user/${user_id}/balance`);
-    console.log(result);
-
-    return result.data;
-  } catch (error) {
-    console.log(error);
+    return result;
+  } catch (error: any) {
+    return error.response.status;
   }
 };
 
 export const sendMoney = async (payload: MoneyRequestPayload): Promise<any> => {
   const result = await API.post('/transfer', payload);
+  console.log(result);
   return result.data;
 };
 
@@ -294,4 +297,48 @@ export const requestMoney = async (
 ): Promise<any> => {
   const result = await API.post('/request', payload);
   return result.data;
+};
+
+export const fetchUserInfo = async (): Promise<any> => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.get(`user/${user_id}`);
+  return result.data.data;
+};
+
+export const fetchUserBankAccount = async (): Promise<any> => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.get(`user/${user_id}/bank-account`);
+  return result.data.data;
+};
+
+export const fetchBankWithdrawals = async (): Promise<any> => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.get(`user/${user_id}/withdrawals`);
+  return result.data.data;
+};
+
+export const fetchBadges = async (): Promise<any> => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.get(`user/${user_id}/badges`);
+  return result.data.data;
+};
+
+export const fetchRecentTransactions = async (): Promise<any> => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.get(`user/${user_id}/badges`);
+  return result.data.data;
+};
+
+export const fetchNotifications = async (): Promise<any> => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.get(`user/${user_id}/notifications`);
+  return result.data.data;
+};
+
+export const withdrawFunds = async (
+  payload: WithdrawalPayload,
+): Promise<any> => {
+  setAxiosToken();
+  const result = await API.post('user/withdraw', payload);
+  return result;
 };

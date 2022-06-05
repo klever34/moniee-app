@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.primary,
     fontWeight: '500',
     marginTop: scaleHeight(15),
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
   subHeader: {
     fontSize: StyleGuide.Typography[14],

@@ -1,12 +1,132 @@
-import React from 'react';
-import {View, Text, StyleSheet, Platform} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
+import {scaledSize} from '../../../assets/style-guide/typography';
+import Icon from '../../../components/Icon';
+import MenuIcon from '../../../components/MenuIcon';
+import {fetchUserInfo} from '../../../contexts/User';
+import {useIsFocused} from '@react-navigation/native';
 
-const Profile: React.FC<ScreenProps<'Profile'>> = () => {
+export type APIUserOBJ = {
+  avatarUrl: null;
+  dob: string;
+  email: null;
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  mobile: string;
+  tier: number;
+};
+
+const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
+  const [userObj, setUserObj] = useState<APIUserOBJ>();
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    try {
+      (async () => {
+        const userInfo = await fetchUserInfo();
+        setUserObj(userInfo);
+      })();
+    } catch (error: any) {}
+  }, [isFocused]);
+
   return (
     <View style={[styles.main]}>
-      <Text>Profile Page</Text>
+      <ScrollView style={[styles.main]}>
+        <View style={styles.redBanner}>
+          <Text style={styles.redBannerTitle}>Attention Required!</Text>
+          <Text style={styles.redBannerSubTitle}>
+            Complete your profile to remove transaction{'\n'}limits and upgrade
+            your account
+          </Text>
+        </View>
+        <View style={styles.profileContainer}>
+          <View style={styles.smallProfileContainer}>
+            <Image
+              source={require('../../../assets/images/avatar.png')}
+              style={styles.image}
+            />
+            <View style={styles.midContent}>
+              <Text style={styles.nameStyle}>
+                {userObj?.firstName} {userObj?.lastName}
+              </Text>
+              <Text style={[styles.numberStyle, styles.extraStyle]}>
+                +{userObj?.mobile}
+              </Text>
+              <View style={styles.starBox}>
+                <Image
+                  source={require('../../../assets/images/ranking.png')}
+                  style={styles.starImage}
+                />
+                <Text style={styles.numberStyle}>Tier {userObj?.tier}</Text>
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.push('EditProfile', {
+                userObj,
+              })
+            }
+            style={styles.editIconBox}>
+            <Icon
+              type="antdesigns"
+              name="edit"
+              size={24}
+              color={StyleGuide.Colors.shades.magenta[25]}
+            />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.achieveContainer}>
+          <Text style={styles.headerText}>Achievements</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {[0, 0, 0, 0].map((item, index) => (
+              <View key={index} style={styles.sendItems}>
+                <Image
+                  source={require('../../../assets/images/avatar.png')}
+                  style={styles.avatarImage}
+                />
+                <Text style={styles.accountName}>Oloye</Text>
+              </View>
+            ))}
+          </ScrollView>
+          <MenuIcon
+            title="Bank Account"
+            image={require('../../../assets/images/bank.png')}
+            onPress={() => navigation.push('BankAccount')}
+          />
+          <MenuIcon
+            title="Account Upgrade"
+            image={require('../../../assets/images/folder.png')}
+            onPress={() => navigation.push('AccountUpgrade')}
+          />
+          <MenuIcon
+            title="Badges"
+            image={require('../../../assets/images/heart.png')}
+            onPress={() => navigation.push('Badges')}
+          />
+          <MenuIcon
+            title="Security"
+            image={require('../../../assets/images/security.png')}
+            onPress={() => navigation.push('SecurityScreen')}
+          />
+          <MenuIcon
+            title="Help & Support"
+            image={require('../../../assets/images/support.png')}
+            onPress={() => navigation.push('HelpAndSupport')}
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -14,9 +134,104 @@ const Profile: React.FC<ScreenProps<'Profile'>> = () => {
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    padding: 20,
+    // padding: 20,
     paddingTop: Platform.OS === 'ios' ? 40 : 10,
     backgroundColor: StyleGuide.Colors.white,
+  },
+  redBanner: {
+    backgroundColor: StyleGuide.Colors.shades.red[25],
+    padding: 20,
+  },
+  redBannerTitle: {
+    color: StyleGuide.Colors.white,
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+  },
+  redBannerSubTitle: {
+    color: StyleGuide.Colors.white,
+    fontFamily: 'NexaRegular',
+    fontSize: scaledSize(10),
+    marginTop: 10,
+    lineHeight: 15,
+  },
+  image: {
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
+  },
+  starImage: {
+    height: 15,
+    width: 15,
+  },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  smallProfileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  starBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  nameStyle: {
+    fontSize: scaledSize(16),
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+    color: StyleGuide.Colors.shades.blue[300],
+  },
+  numberStyle: {
+    fontSize: scaledSize(12),
+    fontFamily: 'NexaRegular',
+    color: StyleGuide.Colors.shades.grey[25],
+  },
+  midContent: {
+    paddingLeft: 10,
+  },
+  extraStyle: {
+    marginTop: 5,
+    marginBottom: 10,
+  },
+  editIconBox: {
+    backgroundColor: StyleGuide.Colors.shades.grey[600],
+    padding: 10,
+    borderRadius: 10,
+  },
+  sendItems: {
+    alignItems: 'center',
+    margin: 20,
+    marginLeft: 0,
+  },
+  accountName: {
+    color: StyleGuide.Colors.shades.magenta[50],
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+    margin: 5,
+  },
+  avatarImage: {
+    height: 40,
+    width: 40,
+    marginRight: 5,
+  },
+  headerText: {
+    fontSize: scaledSize(14),
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+    color: StyleGuide.Colors.shades.blue[300],
+  },
+  achieveContainer: {
+    padding: 20,
+  },
+  menuIcon: {
+    height: 25,
+    width: 25,
+  },
+  menuBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 15,
   },
 });
 

@@ -29,7 +29,9 @@ const Keypad: React.FC<Props> = ({onPress, screenType}) => {
               nums[index][j] !== 'c' && nums[index][j] !== '<'
                 ? styles.btntext
                 : styles.btntext2,
-              screenType && screenType === 'Home' ? styles.textWhite : {},
+              screenType && screenType === 'Home'
+                ? styles.textWhite
+                : styles.textBlack,
             ]}>
             {nums[index][j]}
           </Text>
@@ -58,12 +60,12 @@ const styles = StyleSheet.create({
   btntext: {
     fontSize: Platform.OS === 'ios' ? scaledSize(30) : scaledSize(20),
     color: StyleGuide.Colors.primary,
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
   btntext2: {
     fontSize: Platform.OS === 'ios' ? scaledSize(30) : scaledSize(20),
     color: StyleGuide.Colors.shades.grey[50],
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
   btn: {
     flex: 1,
@@ -87,7 +89,12 @@ const styles = StyleSheet.create({
   textWhite: {
     color: StyleGuide.Colors.white,
     fontSize: Platform.OS === 'ios' ? scaledSize(30) : scaledSize(20),
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+  },
+  textBlack: {
+    color: StyleGuide.Colors.primary,
+    fontSize: Platform.OS === 'ios' ? scaledSize(30) : scaledSize(20),
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
 });
 

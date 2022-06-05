@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {createRef, useCallback, useEffect, useState} from 'react';
+import React, {createRef, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,6 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import {Decoder} from 'elm-decoders';
 import Subheader from '../../../components/Subheader';
 import {
   ContactsData,
@@ -25,7 +24,7 @@ import {
 } from '../../../contexts/User';
 import {ScreenProps} from '../../../../App';
 import Layout from '../../../components/Layout';
-import {getFieldValidationError, scaleHeight, scaleWidth} from '../../../utils';
+import {scaleHeight, scaleWidth} from '../../../utils';
 import StyleGuide from '../../../assets/style-guide';
 import MonieeButton from '../../../components/MonieeButton';
 import {scaledSize} from '../../../assets/style-guide/typography';
@@ -52,28 +51,11 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   const contactActionSheetRef = createRef<ActionSheet>();
   const contactListSheetRef = createRef<ActionSheet>();
 
-  const [hasFormFieldBeenTouched, setHasFormFieldBeenTouched] = useState<{
-    [key: string]: boolean;
-  }>({
-    mobile: false,
-  });
-  const requestDecoder: Decoder<RequestMoneyPayload> = Decoder.object({
-    purpose: Decoder.string.satisfy({
-      predicate: (arg: string) => arg.length >= 1,
-      failureMessage: 'Please fill in a purpose',
-    }),
-    phone_number: Decoder.string.satisfy({
-      predicate: (arg: string) => arg.length >= 9,
-      failureMessage: 'The mobile must be at least 9 digits long',
-    }),
-    amount: Decoder.number,
-  });
   const baseRequest: RequestMoneyPayload = {
     purpose: '',
     phone_number: '',
     amount: Number(amount),
   };
-  const [formErrors, setFormErrors] = useState<any>({});
   const [isLoading, setLoading] = useState<boolean>(false);
   const [request, setRequest] = useState<RequestMoneyPayload>(baseRequest);
   const [contactList, setContactList] = useState<ContactsData[]>();
@@ -83,94 +65,87 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   const [selectedContacts, setSelectedContacts] = useState<any>([]);
   const [stopLoader, setStopLoader] = useState<boolean>(false);
 
-  const hasFormErrors = (errors: any) => {
-    const errorFields = Object.keys(errors);
-    return errorFields.length > 0;
-  };
-
-  const hasFormBeenTouched = (monitoredFieldsStatus: {
-    [key: string]: boolean;
-  }) => {
-    const values = Object.values(monitoredFieldsStatus);
-    return values.some(value => value === true);
-  };
-
   const onChange = (
     e: NativeSyntheticEvent<TextInputChangeEventData>,
     type: string,
   ): void => {
     const updatedReqPayload = {...request, [type]: e.nativeEvent.text};
-    const updatedTouchedFields = {...hasFormFieldBeenTouched, [type]: true};
-
-    setFormErrors({});
     setRequest(updatedReqPayload);
-    setHasFormFieldBeenTouched(updatedTouchedFields);
-
-    const isValid = requestDecoder.run(updatedReqPayload);
-    if (isValid.type === 'FAIL') {
-      const errors: any = isValid.error;
-      setFormErrors({[type]: errors[type]});
-    }
   };
 
-  const onDone = useCallback(
-    async (pin: string) => {
-      transactionPinSheetRef?.current?.hide();
-      console.log({pin});
-      setLoading(true);
-      try {
-        const recipients = [
-          {
-            mobile: request.phone_number,
-            amount: request.amount,
-            reason: request.purpose,
-          },
-        ];
-        console.log(recipients);
-
-        await sendMoney({recipients, pin});
-        setLoading(false);
-        navigation.replace('PaymentStatus', {
-          paymentSuccessStatus: 'success',
+  const onHandlePinDone = async (pin: string) => {
+    transactionPinSheetRef?.current?.hide();
+    setLoading(true);
+    setStopLoader(false);
+    let recipients = [];
+    if (request.phone_number.length > 0) {
+      recipients.push({
+        mobile: request.phone_number,
+        amount: request.amount,
+        reason: request.purpose,
+      });
+    }
+    if (selectedContacts.length > 0) {
+      selectedContacts.map(function (item: ContactsData) {
+        recipients.push({
+          mobile: item.phoneNumbers[0].number,
+          amount: request.amount,
+          reason: request.purpose,
         });
-      } catch (error: any) {
-        console.log(error.response.data);
+      });
+    }
+    try {
+      await sendMoney({recipients, pin});
+      setLoading(false);
+      navigation.replace('PaymentStatus', {
+        paymentSuccessStatus: 'send',
+      });
+    } catch (error: any) {
+      console.log(error.response.data);
+      setStopLoader(true);
+      if (error?.response?.data) {
+        Alert.alert('Error', error.response.data.message);
         // setLoading(false);
-        if (error?.response?.data) {
-          Alert.alert('Error', error.response.data.message);
-        }
+        return;
       }
-    },
-    [navigation, request, transactionPinSheetRef],
-  );
+      // return;
+    }
+  };
 
   useEffect(() => {
     if (stopLoader) {
       setLoading(false);
     }
-  }, [searchInput, stopLoader]);
+  }, [stopLoader]);
 
   const sendRequestMoneyPayload = async () => {
+    let recipients = [];
+    console.log(selectedContacts);
+    if (request.phone_number.length > 0) {
+      recipients.push({
+        mobile: request.phone_number,
+        amount: request.amount,
+        reason: request.purpose,
+      });
+    }
+    if (selectedContacts.length > 0) {
+      selectedContacts.map(function (item: ContactsData) {
+        recipients.push({
+          mobile: item.phoneNumbers[0].number,
+          amount: request.amount,
+          reason: request.purpose,
+        });
+      });
+    }
     setLoading(true);
     setStopLoader(false);
     try {
-      const recipients = [
-        {
-          mobile: request.phone_number,
-          amount: request.amount,
-          reason: request.purpose,
-        },
-      ];
-      console.log(recipients);
-
       await requestMoney({recipients});
       setLoading(false);
       navigation.replace('PaymentStatus', {
-        paymentSuccessStatus: 'success',
+        paymentSuccessStatus: 'request',
       });
     } catch (error: any) {
-      console.log(error.response.data);
-      //   setLoading(false);
       setStopLoader(true);
       if (error?.response?.data) {
         Alert.alert('Error', error.response.data.message);
@@ -190,7 +165,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
       }));
       setContactList(enrichedContacts);
       setSubContactList(enrichedContacts);
-      console.log(enrichedContacts.length);
     } catch (err: any) {}
     setLoading(false);
   };
@@ -208,6 +182,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
         : PERMISSIONS.ANDROID.READ_CONTACTS,
     )
       .then(async result => {
+        contactActionSheetRef?.current?.hide();
         switch (result) {
           case RESULTS.UNAVAILABLE:
             console.log(
@@ -224,7 +199,8 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
             break;
           case RESULTS.GRANTED:
             console.log('The permission is granted');
-            handleContacts();
+            await handleContacts();
+            contactListSheetRef?.current?.show();
             break;
           case RESULTS.BLOCKED:
             console.log('The permission is denied and not requestable anymore');
@@ -407,7 +383,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
               title={'Done'}
               mode={'primary'}
               onPress={() => {
-                console.log(selectedContacts);
                 contactListSheetRef?.current?.hide();
               }}
             />
@@ -419,7 +394,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
         <View style={{flex: 1}}>
           <TransactionPin
             actionSheetRef={transactionPinSheetRef}
-            onDone={(pin: string) => onDone(pin)}
+            onDone={(pin: string) => onHandlePinDone(pin)}
           />
           <View style={styles.main}>
             <Subheader
@@ -429,19 +404,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
               } ₦${amount}`}
             />
             <View style={styles.bigInputBox}>
-              <View
-                // eslint-disable-next-line no-sparse-arrays
-                style={[
-                  styles.bigBox,
-                  styles.inputBox,
-                  hasFormFieldBeenTouched.purpose &&
-                    !!getFieldValidationError('purpose', formErrors) &&
-                    styles.errorInput,
-                  hasFormFieldBeenTouched.purpose &&
-                    !getFieldValidationError('purpose', formErrors) &&
-                    styles.successInput,
-                  ,
-                ]}>
+              <View style={[styles.bigBox, styles.inputBox]}>
                 <TextInput
                   placeholder={`Purpose ${
                     funds_type === 'request' ? 'of request' : 'for sending'
@@ -452,25 +415,8 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
                 />
               </View>
             </View>
-            {!!getFieldValidationError('purpose', formErrors) && (
-              <Text style={styles.errorMsgText}>
-                {formErrors?.purpose.error!}
-              </Text>
-            )}
             <View style={styles.bigInputBox}>
-              <View
-                // eslint-disable-next-line no-sparse-arrays
-                style={[
-                  styles.bigBox,
-                  styles.inputBox,
-                  hasFormFieldBeenTouched.phone_number &&
-                    !!getFieldValidationError('phone_number', formErrors) &&
-                    styles.errorInput,
-                  hasFormFieldBeenTouched.phone_number &&
-                    !getFieldValidationError('phone_number', formErrors) &&
-                    styles.successInput,
-                  ,
-                ]}>
+              <View style={[styles.bigBox, styles.inputBox]}>
                 <TextInput
                   placeholder={'Phone Number'}
                   placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
@@ -486,26 +432,21 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
                 </TouchableOpacity>
               </View>
             </View>
-            {!!getFieldValidationError('phone_number', formErrors) && (
+            {selectedContacts && selectedContacts?.length! > 0 && (
               <Text style={styles.errorMsgText}>
-                {formErrors?.phone_number.error!}
+                You have selected {selectedContacts[0]?.displayName}{' '}
+                {selectedContacts?.length! > 1
+                  ? `and ${selectedContacts?.length! - 1} others`
+                  : ''}
               </Text>
             )}
-
             <View style={styles.subtext}>
               <MonieeButton
                 title={`Send ${funds_type === 'request' ? 'Request' : 'Money'}`}
-                mode={
-                  hasFormBeenTouched(hasFormFieldBeenTouched) &&
-                  !hasFormErrors(formErrors)
-                    ? 'primary'
-                    : 'neutral'
-                }
+                mode={'primary'}
                 disabled={
-                  !(
-                    hasFormBeenTouched(hasFormFieldBeenTouched) &&
-                    !hasFormErrors(formErrors)
-                  )
+                  selectedContacts.length === 0 &&
+                  request.phone_number.length === 0
                 }
                 onPress={() => {
                   if (funds_type === 'request') {
@@ -609,7 +550,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: StyleGuide.Colors.primary,
     fontSize: StyleGuide.Typography[16],
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     marginTop: -60,
   },
   modalSubTitle: {
@@ -648,8 +589,12 @@ const styles = StyleSheet.create({
   contactMobile: {
     color: StyleGuide.Colors.shades.magenta[50],
     fontSize: scaledSize(13),
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     marginTop: 7,
+  },
+  isLoading: {
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
 });
 

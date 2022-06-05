@@ -40,9 +40,7 @@ const ConfirmPassword: React.FC<ScreenProps<'ConfirmPassword'>> = ({
         await EncryptedStorage.getItem('userDetails'),
       );
       const id = await EncryptedStorage.getItem('user-id');
-      const userDetails = await EncryptedStorage.getItem('userDetails');
-      const storedUserState = JSON.parse(userDetails!);
-      setAxiosToken(storedUserState.token);
+      setAxiosToken();
       await setUserPin({pin: defaultOtp}, Number(id));
       await EncryptedStorage.setItem('@user_token', userObj.token);
       signIn();

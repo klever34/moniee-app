@@ -83,5 +83,7 @@
 	<string>Moniee needs access to your contacts. Please Allow</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Moniee needs access to show notifications. Please Allow</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Moniee needs access to your microphone. Please Allow</string>
 </dict>
 </plist>

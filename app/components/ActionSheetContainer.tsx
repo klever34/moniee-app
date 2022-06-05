@@ -25,11 +25,11 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   actionSheetPrompt: {
-    fontSize: Platform.OS === 'ios' ? scaledSize(20) : scaledSize(16),
+    fontSize: Platform.OS === 'ios' ? scaledSize(18) : scaledSize(16),
     color: StyleGuide.Colors.black,
     textAlign: 'center',
     // marginBottom: 32,
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
   bottomMargin: {
     marginBottom: 32,

@@ -24,7 +24,8 @@ const TransactionPin = ({
     if (defaultPin.length === 4) {
       onDone(defaultPin);
     }
-  }, [defaultPin, onDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultPin]);
 
   const getKeyString = (numericKey: any) => {
     if (numericKey === 'c') {

@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.white,
     fontSize: scaledSize(18),
     marginBottom: scaleHeight(2),
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
   pageSubtitle: {
     color: StyleGuide.Colors.white,
@@ -124,10 +124,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   pageTitleBlack: {
-    color: StyleGuide.Colors.shades.blue[200],
+    color: StyleGuide.Colors.shades.blue[300],
     fontSize: scaledSize(18),
     marginBottom: scaleHeight(2),
-    fontFamily: Platform.OS === 'ios' ? 'NexaRegular' : 'NexaBold',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
   },
   pageSubtitleBlack: {
     color: StyleGuide.Colors.shades.grey[25],

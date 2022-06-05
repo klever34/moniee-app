@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -118,7 +119,8 @@ const styles: GenericStylesProp = StyleSheet.create({
   coreText: {
     fontSize: StyleGuide.Typography[14],
     fontWeight: '500',
-    fontFamily: 'NexaRegular',
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+    marginTop: Platform.OS === 'ios' ? 3 : 0,
   },
   smallCoreText: {
     fontSize: StyleGuide.Typography[12],

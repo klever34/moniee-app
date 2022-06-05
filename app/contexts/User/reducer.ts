@@ -25,6 +25,7 @@ export type User = {
   score: number;
   // bills: Bill[];
   id?: number | null;
+  tier?: number | null;
 };
 
 export const initialUserState: User = {
@@ -36,7 +37,7 @@ export const initialUserState: User = {
   country_code: '',
   token: '',
   is_active: false,
-  is_new: false,
+  is_new: true,
   avatar_url: '',
   dob: '',
   wallet: {
@@ -49,6 +50,7 @@ export const initialUserState: User = {
     card_details: {},
   },
   score: 0,
+  tier: 1,
 };
 
 export const reducer = (state: User, action: GenericUserAction) => {

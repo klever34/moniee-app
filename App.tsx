@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useMemo, useReducer, useState} from 'react';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {
@@ -5,13 +6,6 @@ import {
   StackNavigationProp,
 } from '@react-navigation/stack';
 import {RouteProp} from '@react-navigation/core';
-import // UserContext,
-// initialUserState,
-// reducer,
-// NewUser,
-// LoginPayload,
-// UserActions,
-'./app/contexts/User';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {MenuProvider} from 'react-native-popup-menu';
 
@@ -23,10 +17,15 @@ import ConfirmPassword from './app/screens/auth/ConfirmPassword';
 import Splash from './app/screens/auth/Splash';
 import {ToastProvider} from 'react-native-toast-notifications';
 import StyleGuide from './app/assets/style-guide';
-import {Platform, StyleSheet} from 'react-native';
+import {
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {TabBarLabel} from './app/components/TabBarLabel';
-// import {applyStyles, navBarHeight} from './app/assets/styles';
-import Icon from './app/components/Icon';
 import {AuthContext} from './context';
 import {scaledSize} from './app/assets/style-guide/typography';
 import ForgotPin from './app/screens/auth/ForgotPin';
@@ -41,7 +40,28 @@ import EncryptedStorage from 'react-native-encrypted-storage';
 import {setAxiosToken} from './app/services/api';
 import {initialUserState, reducer, UserActions} from './app/contexts/User';
 import PaymentStatus from './app/screens/main/Payments/PaymentStatus';
-import QRCode from './app/screens/main/MoneyTab/QRCode';
+import QRCodeScreen from './app/screens/main/MoneyTab/QRCode';
+import Withdraw from './app/screens/main/Home/Withdraw';
+import WithdrawalSuccessfulScreen from './app/screens/main/Home/WithdrawalSuccessfulScreen';
+import Notifications from './app/screens/main/Home/Notifications';
+import Icon from './app/components/Icon';
+import HelpAndSupport from './app/screens/main/ProfileTab/Support/HelpAndSupport';
+import CustomerCare from './app/screens/main/ProfileTab/Support/CustomerCare';
+import Legal from './app/screens/main/ProfileTab/Support/Legal';
+import ChangeLog from './app/screens/main/ProfileTab/Support/ChangeLog';
+import BankAccount from './app/screens/main/ProfileTab/BankAccount';
+import EditProfile from './app/screens/main/ProfileTab/EditProfile';
+import AccountUpgrade from './app/screens/main/ProfileTab/Account.tsx/AccountUpgrade';
+import SecurityScreen from './app/screens/main/ProfileTab/Security/SecurityScreen';
+import ChangePin from './app/screens/main/ProfileTab/Security/ChangePin';
+import SetNewPin from './app/screens/main/ProfileTab/Security/SetNewPin';
+import ConfirmNewPin from './app/screens/main/ProfileTab/Security/ConfirmNewPin';
+import GovtID from './app/screens/main/ProfileTab/Account.tsx/TierTwo/GovtID';
+import VerificationStatus from './app/screens/main/ProfileTab/Account.tsx/TierTwo/VerificationStatus';
+import ResidentialAddress from './app/screens/main/ProfileTab/Account.tsx/TierThree/ResidentialAddress';
+import TierList from './app/screens/main/ProfileTab/Account.tsx/TierThree/TierList';
+import BankStatement from './app/screens/main/ProfileTab/Account.tsx/TierThree/BankStatement';
+import Badges from './app/screens/main/ProfileTab/Badges';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -62,23 +82,27 @@ export type RootStackParamList = {
   RequestMoney: {funds_type: 'request' | 'send'; amount: string};
   TabScreens: undefined;
   PaymentStatus: {paymentSuccessStatus: string};
-  QRCode: undefined;
-  //
-  VerifyIdentity: {typeOfVerification?: string};
-  ShareContact: {payload: any};
-  Home: undefined;
-  WithdrawalSettings: undefined;
-  DepositMoney: undefined;
-  DepositSuccess: undefined;
-  DepositFailed: undefined;
-  ShareDetails: undefined;
-  WithdrawScreen: undefined;
-  WithdrawSuccessScreen: undefined;
-  ConfirmPasscode: undefined;
-  AddWithdrawalMethod: undefined;
-  UserSettings: undefined;
-  PaymentSettings: undefined;
-  TransactionsHistory: undefined;
+  QRCodeScreen: undefined;
+  Withdraw: undefined;
+  WithdrawSuccessful: undefined;
+  Notifications: undefined;
+  HelpAndSupport: undefined;
+  CustomerCare: undefined;
+  Legal: undefined;
+  ChangeLog: undefined;
+  BankAccount: undefined;
+  EditProfile: {userObj?: any};
+  AccountUpgrade: undefined;
+  SecurityScreen: undefined;
+  ChangePin: undefined;
+  SetNewPin: undefined;
+  ConfirmNewPin: undefined;
+  GovtID: undefined;
+  ResidentialAddress: undefined;
+  VerificationStatus: {idStatus: 'success' | 'failed'};
+  TierList: undefined;
+  BankStatement: undefined;
+  Badges: undefined;
 };
 
 export type MainNavParamList = {
@@ -110,18 +134,10 @@ export type ScreenProps<T extends keyof RootStackParamList> = {
 const App: React.FC<RootStackParamList> = () => {
   const [state, dispatch] = useReducer(reducer, initialUserState);
   const context = {userState: state, userDispatch: dispatch};
-  // let userToken = state.token;
   console.log({context});
-
   const [splash, setSplash] = React.useState(true);
   const [userToken, setUserToken] = useState<null | string>(null);
-  // const [isLoading, setIsLoading] = useState(true);
-  // const [userStatus, setUserStatus] = useState(null);
   const [chosenTheme, setChosenTheme] = useState(0);
-
-  // type StackProps = {
-  //   currentColorTheme: string;
-  // };
 
   const AppStack = createStackNavigator<RootStackParamList>();
   const NoAuthScreensNavigator = () => (
@@ -205,15 +221,16 @@ const App: React.FC<RootStackParamList> = () => {
               <TabBarLabel {...labelProps}>Home</TabBarLabel>
             ),
             tabBarIcon: ({focused}) => (
-              <Icon
-                type="material-icons"
-                name="home-filled"
-                size={focused ? 30 : 20}
-                color={
+              <Image
+                source={
                   focused
-                    ? StyleGuide.Colors.primary
-                    : StyleGuide.Colors.shades.grey[1450]
+                    ? require('./app/assets/images/home_dark.png')
+                    : require('./app/assets/images/home_grey.png')
                 }
+                style={[
+                  styles.imageStyle,
+                  focused ? {height: 30, width: 30} : {opacity: 0.5},
+                ]}
               />
             ),
           }}
@@ -226,15 +243,16 @@ const App: React.FC<RootStackParamList> = () => {
               <TabBarLabel {...labelProps}>Money</TabBarLabel>
             ),
             tabBarIcon: ({focused}) => (
-              <Icon
-                type="ionicons"
-                name="keypad"
-                size={focused ? 30 : 20}
-                color={
+              <Image
+                source={
                   focused
-                    ? StyleGuide.Colors.white
-                    : StyleGuide.Colors.shades.grey[1450]
+                    ? require('./app/assets/images/keypad_white.png')
+                    : require('./app/assets/images/keypad_grey.png')
                 }
+                style={[
+                  styles.imageStyle,
+                  focused ? {height: 30, width: 30} : {opacity: 0.5},
+                ]}
               />
             ),
           }}
@@ -248,15 +266,16 @@ const App: React.FC<RootStackParamList> = () => {
               <TabBarLabel {...labelProps}>Profile</TabBarLabel>
             ),
             tabBarIcon: ({focused}) => (
-              <Icon
-                type="fontawesome5"
-                name="user"
-                size={focused ? 30 : 20}
-                color={
+              <Image
+                source={
                   focused
-                    ? StyleGuide.Colors.primary
-                    : StyleGuide.Colors.shades.grey[1450]
+                    ? require('./app/assets/images/user_dark.png')
+                    : require('./app/assets/images/user_grey.png')
                 }
+                style={[
+                  styles.imageStyle,
+                  focused ? {height: 30, width: 30} : {opacity: 0.5},
+                ]}
               />
             ),
           }}
@@ -275,7 +294,36 @@ const App: React.FC<RootStackParamList> = () => {
       <ParentStack.Screen name="TabScreens" component={AuthScreensNavigator} />
       <ParentStack.Screen name="RequestMoney" component={RequestMoney} />
       <ParentStack.Screen name="PaymentStatus" component={PaymentStatus} />
-      <ParentStack.Screen name="QRCode" component={QRCode} />
+      <ParentStack.Screen name="QRCodeScreen" component={QRCodeScreen} />
+      <ParentStack.Screen name="Withdraw" component={Withdraw} />
+      <ParentStack.Screen name="Notifications" component={Notifications} />
+      <ParentStack.Screen name="HelpAndSupport" component={HelpAndSupport} />
+      <ParentStack.Screen name="CustomerCare" component={CustomerCare} />
+      <ParentStack.Screen name="Legal" component={Legal} />
+      <ParentStack.Screen name="ChangeLog" component={ChangeLog} />
+      <ParentStack.Screen name="BankAccount" component={BankAccount} />
+      <ParentStack.Screen name="EditProfile" component={EditProfile} />
+      <ParentStack.Screen name="AccountUpgrade" component={AccountUpgrade} />
+      <ParentStack.Screen name="GovtID" component={GovtID} />
+      <ParentStack.Screen name="SecurityScreen" component={SecurityScreen} />
+      <ParentStack.Screen name="ChangePin" component={ChangePin} />
+      <ParentStack.Screen name="SetNewPin" component={SetNewPin} />
+      <ParentStack.Screen name="ConfirmNewPin" component={ConfirmNewPin} />
+      <ParentStack.Screen name="TierList" component={TierList} />
+      <ParentStack.Screen name="BankStatement" component={BankStatement} />
+      <ParentStack.Screen name="Badges" component={Badges} />
+      <ParentStack.Screen
+        name="ResidentialAddress"
+        component={ResidentialAddress}
+      />
+      <ParentStack.Screen
+        name="VerificationStatus"
+        component={VerificationStatus}
+      />
+      <ParentStack.Screen
+        name="WithdrawSuccessful"
+        component={WithdrawalSuccessfulScreen}
+      />
     </ParentStack.Navigator>
   );
 
@@ -332,7 +380,7 @@ const App: React.FC<RootStackParamList> = () => {
       },
       signOut: async () => {
         try {
-          await EncryptedStorage.removeItem('@user_token');
+          await EncryptedStorage.clear();
           setUserToken(null);
         } catch (e) {}
       },
@@ -380,7 +428,7 @@ const App: React.FC<RootStackParamList> = () => {
       const userDetails = await EncryptedStorage.getItem('userDetails');
       if (userDetails) {
         const storedUserState = JSON.parse(userDetails);
-        setAxiosToken(storedUserState.token);
+        setAxiosToken();
 
         dispatch({
           type: UserActions.SIGN_IN_USER,
@@ -439,6 +487,43 @@ const App: React.FC<RootStackParamList> = () => {
             warningColor={StyleGuide.Colors.shades.orange[200]}
             normalColor={StyleGuide.Colors.shades.grey[300]}
             textStyle={styles.toastFontSize}
+            style={{elevation: 10}}
+            renderType={{
+              custom_toast: toast => (
+                <View style={styles.toastBox}>
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: scaledSize(14),
+                        color: StyleGuide.Colors.white,
+                        fontFamily:
+                          Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+                      }}>
+                      {toast.data.title}
+                    </Text>
+                    <Text
+                      style={{
+                        color: StyleGuide.Colors.white,
+                        marginTop: 2,
+                        fontFamily: 'NexaRegular',
+                        fontSize: scaledSize(10),
+                      }}>
+                      {toast.message}
+                    </Text>
+                  </View>
+                  <TouchableOpacity style={styles.iconBox}>
+                    <Icon
+                      type="fontawesome5"
+                      name="times"
+                      size={14}
+                      color={StyleGuide.Colors.white}
+                      style={styles.iconStyle}
+                      onPress={() => toast.onHide()}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ),
+            }}
             swipeEnabled={true}>
             <RootStackNavigtor />
           </ToastProvider>
@@ -451,6 +536,33 @@ const App: React.FC<RootStackParamList> = () => {
 const styles = StyleSheet.create({
   toastFontSize: {
     fontSize: scaledSize(12),
+    fontFamily: 'NexaRegular',
+  },
+  imageStyle: {
+    resizeMode: 'contain',
+    width: 20,
+    height: 20,
+  },
+  toastBox: {
+    // maxWidth: '90%',
+    width: '95%',
+    backgroundColor: StyleGuide.Colors.shades.magenta[90],
+    marginTop: 30,
+    borderRadius: 8,
+    justifyContent: 'space-between',
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconStyle: {
+    alignSelf: 'flex-end',
+    elevation: 3,
+  },
+  iconBox: {
+    padding: 10,
+    backgroundColor: 'rgba(12, 12, 38, 0.5)',
+    borderRadius: 10,
+    marginLeft: 20,
   },
 });
 

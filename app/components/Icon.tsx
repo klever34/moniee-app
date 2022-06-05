@@ -8,6 +8,7 @@ export type IconProps = {
     | 'material-icons'
     | 'feathericons'
     | 'material-community-icons'
+    | 'antdesigns'
     | 'fontawesome5';
   [key: string]: any;
 };
@@ -18,6 +19,10 @@ export const Icon = ({type, ...props}: IconProps) => {
   if (type === 'ionicons') {
     const {default: Ionicons} = require('react-native-vector-icons/Ionicons');
     return <Ionicons {...props} />;
+  }
+  if (type === 'antdesigns') {
+    const {default: AntDesign} = require('react-native-vector-icons/AntDesign');
+    return <AntDesign {...props} />;
   }
   if (type === 'feathericons') {
     const {default: Feather} = require('react-native-vector-icons/Feather');

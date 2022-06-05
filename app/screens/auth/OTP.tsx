@@ -57,6 +57,7 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({navigation, route}) => {
         otp: defaultOtp,
         countryCode: userObj.country_code,
       });
+
       if (resetPassword && resetPassword === true) {
         setLoading(false);
         navigation.push('SecurePassword');
