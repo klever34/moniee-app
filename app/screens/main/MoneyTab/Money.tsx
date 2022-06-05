@@ -26,6 +26,7 @@ import {scaleHeight} from '../../../utils';
 import formatNumber from 'format-number';
 import {AuthContext} from '../../../../context';
 import {useIsFocused} from '@react-navigation/native';
+import BackgroundFetch from 'react-native-background-fetch';
 
 const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const [moneyValue, setMoneyValue] = useState<string>('');
@@ -41,6 +42,26 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
 
   const appState = useRef(AppState.currentState);
   const [appStateVisible, setAppStateVisible] = useState(appState.current);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      return;
+    }
+    BackgroundFetch.configure(
+      {
+        stopOnTerminate: false,
+        minimumFetchInterval: 15,
+      },
+      async taskId => {
+        await getUserBalance();
+        BackgroundFetch.finish(taskId);
+      },
+      () => {
+        console.log('RNBackgroundFetch failed to start.');
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
@@ -60,20 +81,25 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
     };
   }, []);
 
+  const getUserBalance = async () => {
+    const response = await fetchWalletBalance();
+    if (response === 401) {
+      Alert.alert('Info', 'Your session has timed out, please login again');
+      await logOutUser();
+      return;
+    }
+    setBalance(response.data.balance);
+  };
+
   useEffect(() => {
     try {
       (async () => {
-        const response = await fetchWalletBalance();
-        if (response === 401) {
-          Alert.alert('Info', 'Your session has timed out, please login again');
-          await logOutUser();
-          return;
-        }
-        setBalance(response.data.balance);
+        await getUserBalance();
       })();
     } catch (error: any) {
       console.log(error);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logOutUser, isFocused, appStateVisible]);
 
   const getKeyString = (numericKey: any) => {
