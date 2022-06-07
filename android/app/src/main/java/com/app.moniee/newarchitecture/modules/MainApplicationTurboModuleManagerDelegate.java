@@ -1,4 +1,4 @@
-package com.moniee.newarchitecture.modules;
+package com.app.moniee.newarchitecture.modules;
 
 import com.facebook.jni.HybridData;
 import com.facebook.react.ReactPackage;

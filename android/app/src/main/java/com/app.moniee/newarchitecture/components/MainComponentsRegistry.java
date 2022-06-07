@@ -1,4 +1,4 @@
-package com.moniee.newarchitecture.components;
+package com.app.moniee.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;
