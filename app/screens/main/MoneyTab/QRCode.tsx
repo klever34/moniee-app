@@ -9,7 +9,7 @@ import {RNCamera} from 'react-native-camera';
 import QRCode from 'react-native-qrcode-svg';
 
 const QRCodeScreen: React.FC<ScreenProps<'QRCodeScreen'>> = ({navigation}) => {
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [selectedIndex, setSelectedIndex] = useState<number>(1);
   return (
     <Layout>
       <View style={styles.main}>
@@ -37,7 +37,8 @@ const QRCodeScreen: React.FC<ScreenProps<'QRCodeScreen'>> = ({navigation}) => {
         <View style={styles.bottomContainer}>
           <Text
             onPress={() => {
-              setSelectedIndex(0);
+              // setSelectedIndex(0);
+              null;
             }}
             style={
               selectedIndex === 0 ? styles.activeText : styles.inactiveText
@@ -64,12 +65,13 @@ const styles = StyleSheet.create({
   iconStyle: {
     alignSelf: 'flex-end',
     marginRight: 10,
-    elevation: 3,
+    elevation: 300,
+    marginBottom: 20,
   },
   qrCodeStyle: {
     flex: 1,
-    // position: 'absolute',
-    // top: 50,
+    position: 'absolute',
+    top: 50,
     left: -24,
     width: Dimensions.get('window').width,
     height: 300,

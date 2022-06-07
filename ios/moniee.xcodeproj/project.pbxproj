@@ -48,7 +48,7 @@
 		1772791B556A47E28D1EA1AC /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		2A39BDE4B6484307A34F0573 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
 		3B756463B64D475A97238322 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
-		3EFF2FBBDA824010A8B05DA4 /* NexaBlack.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = NexaBlack.ttf; path = ../app/assets/fonts/NexaBlack.ttf; sourceTree = "<group>"; };
+		3EFF2FBBDA824010A8B05DA4 /* NexaBlack.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = NexaBlack.ttf; path = ../app/assets/fonts/NexaBlack.ttf; sourceTree = "<group>"; };
 		42B65344AF5046E6997F4C1C /* NexaLight.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = NexaLight.otf; path = ../app/assets/fonts/NexaLight.otf; sourceTree = "<group>"; };
 		47BD3F11B9F06E27C57C985F /* Pods-moniee.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-moniee.release.xcconfig"; path = "Target Support Files/Pods-moniee/Pods-moniee.release.xcconfig"; sourceTree = "<group>"; };
 		4C3DA34F29B240CFB2403223 /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
@@ -58,11 +58,11 @@
 		7F36E5BFF496462E8EB1E59A /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = moniee/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9280E882458B43F3BAE632D4 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
-		9F5A364A018E4A01B2E2D004 /* NexaExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = NexaExtraBold.ttf; path = ../app/assets/fonts/NexaExtraBold.ttf; sourceTree = "<group>"; };
+		9F5A364A018E4A01B2E2D004 /* NexaExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = NexaExtraBold.ttf; path = ../app/assets/fonts/NexaExtraBold.ttf; sourceTree = "<group>"; };
 		A2149D15D97B42F4962F9D15 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		A69A5659FD6A11BA32C7E7A8 /* Pods-moniee-monieeTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-moniee-monieeTests.release.xcconfig"; path = "Target Support Files/Pods-moniee-monieeTests/Pods-moniee-monieeTests.release.xcconfig"; sourceTree = "<group>"; };
-		B5F6EC3217214D8DAA2FBA8D /* NexaThin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = NexaThin.ttf; path = ../app/assets/fonts/NexaThin.ttf; sourceTree = "<group>"; };
-		B8D8A69DE04F4C018B73A3D1 /* NexaBook.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = NexaBook.ttf; path = ../app/assets/fonts/NexaBook.ttf; sourceTree = "<group>"; };
+		B5F6EC3217214D8DAA2FBA8D /* NexaThin.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = NexaThin.ttf; path = ../app/assets/fonts/NexaThin.ttf; sourceTree = "<group>"; };
+		B8D8A69DE04F4C018B73A3D1 /* NexaBook.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = NexaBook.ttf; path = ../app/assets/fonts/NexaBook.ttf; sourceTree = "<group>"; };
 		BFF55E0125874781B82B9385 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		C3DF5FE2AE4420BCD17CAB8E /* Pods-moniee-monieeTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-moniee-monieeTests.debug.xcconfig"; path = "Target Support Files/Pods-moniee-monieeTests/Pods-moniee-monieeTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C62AB4A82F74471E93FCBAF7 /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
@@ -530,7 +530,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moniee.app;
 				PRODUCT_NAME = moniee;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -558,7 +558,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moniee.app;
 				PRODUCT_NAME = moniee;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

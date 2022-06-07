@@ -88,7 +88,7 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
       await logOutUser();
       return;
     }
-    setBalance(response.data.balance);
+    setBalance(response?.data?.balance);
   };
 
   useEffect(() => {

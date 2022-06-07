@@ -230,6 +230,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('edc.keystore')
+            storePassword 'hostville'
+            keyAlias 'edc'
+            keyPassword 'hostville'
+        }
     }
     buildTypes {
         debug {
