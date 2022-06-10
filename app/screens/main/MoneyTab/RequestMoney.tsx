@@ -155,7 +155,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   };
 
   const handleContacts = async () => {
-    contactListSheetRef?.current?.show();
     setLoadingContacts(true);
     if (contactList?.length! > 0) {
       setSubContactList(contactList);
@@ -211,6 +210,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
           case RESULTS.GRANTED:
             console.log('The permission is granted');
             await handleContacts();
+            contactListSheetRef?.current?.show();
             break;
           case RESULTS.BLOCKED:
             console.log('The permission is denied and not requestable anymore');
