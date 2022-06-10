@@ -40,24 +40,10 @@ export type GenericUserAction = {
   payload?: any;
 };
 
-// type CreateNewUserAction = {
-//   type: UserActions.CREATE_NEW_USER;
-//   payload: User;
-// };
-
-// type SignInUserAction = {
-//   type: UserActions.SIGN_IN_USER;
-//   payload: User;
-// };
-
 export type RequestMoneyPayload = {
   purpose: string;
   phone_number: string;
   amount: number;
-};
-
-export const signUp = async (payload: NewUser): Promise<void> => {
-  await API.post('/customers/signup', keysToSnakeCase(payload));
 };
 
 type VerifyOtpPayload = {
@@ -68,29 +54,6 @@ type VerifyOtpPayload = {
 
 type SetPinPayload = {
   pin: string;
-};
-
-type fcmTokenPayload = {
-  token: string;
-  platform?: string;
-};
-
-type PatchPayload = {
-  user_id?: number;
-  email?: string;
-  firstname?: string;
-  lastname?: string;
-};
-
-type PaystackPayload = {
-  customer_id: number;
-  amount: number;
-  bnpl_id: any;
-  paystackRes?: any;
-};
-
-type CardDetailsPayload = {
-  user_id: number;
 };
 
 export type CardDetails = {
@@ -108,10 +71,6 @@ export type LoginPayload = Pick<User, 'mobile' | 'country_code'>;
 export type SignInPayload = {
   mobile: string;
   pin: string;
-};
-
-type UserCheckPayload = {
-  mobiles: string[];
 };
 
 type RecipientPayload = {
@@ -167,91 +126,12 @@ export const sendOtp = async (
   console.log(res.data);
 };
 
-export const saveContacts = async (payload: ContactsData[]): Promise<void> => {
-  await API.post('/customers/phonebook', payload);
-};
-
 export const setUserPin = async (
   payload: SetPinPayload,
   user_id: number,
 ): Promise<any> => {
   const res = await API.patch(`/user/${user_id}/pin`, keysToSnakeCase(payload));
   return res.data;
-};
-
-export const getUserDashboardData = async (): Promise<User> => {
-  const fetchResponse = await API.get('/customers/dashboard');
-  const userDetails = forgeUserData(fetchResponse);
-  return userDetails;
-};
-
-export const updateUserState = async (
-  partialUser: Partial<User>,
-): Promise<GenericUserAction> => {
-  const userDetailsStr = await EncryptedStorage.getItem('userDetails');
-  let userDetails = JSON.parse(userDetailsStr as string);
-  userDetails = {
-    ...userDetails,
-    ...partialUser,
-    token: userDetails.token,
-  };
-  await EncryptedStorage.setItem('userDetails', JSON.stringify(userDetails));
-  return {
-    type: UserActions.REFRESH_USER,
-    payload: {
-      is_identity_verified: userDetails.is_identity_verified,
-      id: userDetails.id,
-    },
-  };
-};
-
-export const saveUserCard = async (payload: PaystackPayload): Promise<any> => {
-  const result = await API.post('', payload);
-  return result.data;
-};
-
-export const payWithCard = async (
-  payload: Partial<PaystackPayload>,
-): Promise<any> => {
-  const result = await API.post('', payload);
-  return result.data;
-};
-
-export const getCardDetails = async (
-  payload: CardDetailsPayload,
-): Promise<any> => {
-  const result = await API.post('', payload);
-  return result.data;
-};
-
-export const saveFcmToken = async (payload: fcmTokenPayload): Promise<void> => {
-  await API.post('/fcm/token', payload);
-};
-
-export const patchUserData = async (payload: PatchPayload): Promise<any> => {
-  const result = await API.patch('/users/me', payload);
-  return result.data;
-};
-
-export const deleteDebitCard = async (
-  payload: CardDetailsPayload,
-): Promise<any> => {
-  const result = await API.post('', payload);
-  return result.data;
-};
-
-export const fileUpload = async (formData: FormData): Promise<any> => {
-  const response = await API.post('/file', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response;
-};
-
-export const userCheck = async (payload: UserCheckPayload): Promise<any> => {
-  const {data: users} = await API.post('/users/check', payload);
-  return users.data;
 };
 
 export const getBanks = async (): Promise<any> => {
@@ -340,5 +220,11 @@ export const withdrawFunds = async (
 ): Promise<any> => {
   setAxiosToken();
   const result = await API.post('user/withdraw', payload);
+  return result;
+};
+
+export const updateUserEmail = async (payload: Pick<NewUser, 'email'>) => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.patch(`user/${user_id}`, payload);
   return result;
 };

@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {View, StyleSheet, Alert} from 'react-native';
 import {ScreenProps} from '../../../../App';
 import Layout from '../../../components/Layout';
@@ -13,6 +13,7 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
 }) => {
   const isFocused = useIsFocused();
   const {signOut} = useContext(AuthContext);
+  const [notifications, setNotifications] = useState([]);
 
   const logOutUser = useCallback(async () => {
     await signOut();
@@ -27,7 +28,7 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
           await logOutUser();
           return;
         }
-        console.log(response);
+        setNotifications(response);
       })();
     } catch (error: any) {
       console.log(error);
@@ -37,7 +38,15 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
     <Layout>
       <View style={styles.main}>
         <Subheader title="Notifications" goBack={navigation.goBack} />
-        <NotificationItem />
+        {notifications.map((item: any, index) => (
+          <NotificationItem
+            key={index}
+            amount={item.meta.amount}
+            destination={item.meta.destination}
+            reason={item.meta.reason}
+            type={item.type}
+          />
+        ))}
       </View>
     </Layout>
   );

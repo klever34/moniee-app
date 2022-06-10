@@ -14,6 +14,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Subheader from '../../../components/Subheader';
 import {
@@ -64,6 +65,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   const [isChecked] = useState<boolean>(false);
   const [selectedContacts, setSelectedContacts] = useState<any>([]);
   const [stopLoader, setStopLoader] = useState<boolean>(false);
+  const [loadContacts, setLoadingContacts] = useState<boolean>(false);
 
   const onChange = (
     e: NativeSyntheticEvent<TextInputChangeEventData>,
@@ -120,7 +122,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
 
   const sendRequestMoneyPayload = async () => {
     let recipients = [];
-    console.log(selectedContacts);
     if (request.phone_number.length > 0) {
       recipients.push({
         mobile: request.phone_number,
@@ -155,6 +156,13 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
 
   const handleContacts = async () => {
     contactListSheetRef?.current?.show();
+    setLoadingContacts(true);
+    if (contactList?.length! > 0) {
+      setSubContactList(contactList);
+      setLoadingContacts(false);
+      console.log('stops here');
+      return;
+    }
     try {
       const contacts = await Contacts.getAll();
       const enrichedContacts = contacts.map(item => ({
@@ -165,7 +173,10 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
       }));
       setContactList(enrichedContacts);
       setSubContactList(enrichedContacts);
-    } catch (err: any) {}
+      setLoadingContacts(false);
+    } catch (err: any) {
+      setLoadingContacts(false);
+    }
     setLoading(false);
   };
 
@@ -200,7 +211,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
           case RESULTS.GRANTED:
             console.log('The permission is granted');
             await handleContacts();
-            contactListSheetRef?.current?.show();
             break;
           case RESULTS.BLOCKED:
             console.log('The permission is denied and not requestable anymore');
@@ -310,13 +320,14 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
         </ActionSheetContainer>
       </MonieeActionSheet>
       <ActionSheet
-        initialOffsetFromBottom={1}
+        initialOffsetFromBottom={0.7}
         ref={contactListSheetRef}
         statusBarTranslucent
         bounceOnOpen={true}
         drawUnderStatusBar={true}
         bounciness={4}
         gestureEnabled={true}
+        onClose={() => contactListSheetRef?.current?.hide()}
         defaultOverlayOpacity={0.3}>
         <View
           style={{
@@ -336,7 +347,10 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
               style={styles.input}
               placeholder="Search Name"
             />
-            <View style={{flex: 1, marginBottom: 20}}>
+            {loadContacts && (
+              <ActivityIndicator size={'small'} style={styles.indicator} />
+            )}
+            <ScrollView style={{flex: 1, marginBottom: 20, height: '70%'}}>
               {subContactList?.map((item: any, index: number) => (
                 <View
                   key={index}
@@ -356,7 +370,9 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
                         {item?.displayName ?? ''}
                       </Text>
                       <Text style={styles.contactMobile}>
-                        {item?.phoneNumbers[0].number ?? 'N/A'}
+                        {(item.phoneNumbers.length > 0 &&
+                          item?.phoneNumbers[0].number) ??
+                          'N/A'}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -378,13 +394,14 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
                   />
                 </View>
               ))}
-            </View>
+            </ScrollView>
             <MonieeButton
               title={'Done'}
               mode={'primary'}
               onPress={() => {
                 contactListSheetRef?.current?.hide();
               }}
+              customStyle={{flex: 1}}
             />
             <View style={styles.footer} />
           </ScrollView>
@@ -575,6 +592,7 @@ const styles = StyleSheet.create({
     borderColor: '#f0f0f0',
     marginBottom: 15,
     paddingHorizontal: 10,
+    fontFamily: 'NexaRegular',
   },
   contactStyle: {
     flexDirection: 'row',
@@ -595,6 +613,10 @@ const styles = StyleSheet.create({
   isLoading: {
     flexDirection: 'row',
     justifyContent: 'center',
+  },
+  indicator: {
+    alignSelf: 'center',
+    marginVertical: 10,
   },
 });
 

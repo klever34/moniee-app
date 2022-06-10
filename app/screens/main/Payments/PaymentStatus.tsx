@@ -10,12 +10,12 @@ import {scaleHeight, scaleWidth} from '../../../utils';
 
 const PaymentStatus: React.FC<ScreenProps<'PaymentStatus'>> = ({
   route,
-  //   navigation,
+  navigation,
 }) => {
   const {paymentSuccessStatus} = route.params;
   const bgColor =
     paymentSuccessStatus === 'request'
-      ? StyleGuide.Colors.shades.green[100]
+      ? StyleGuide.Colors.shades.green[800]
       : paymentSuccessStatus === 'send'
       ? StyleGuide.Colors.white
       : StyleGuide.Colors.shades.red[100];
@@ -61,13 +61,13 @@ const PaymentStatus: React.FC<ScreenProps<'PaymentStatus'>> = ({
             {paymentSuccessStatus === 'request' ? 'Request Sent' : 'Money Sent'}
           </Text>
           <Text style={subtitleColor}>
-            Your request for ₦2,000 to Terry and 5 others has been sent
+            Your request for ₦2,000 has been sent
           </Text>
         </View>
         <MonieeButton
           title={buttonText}
           mode={paymentSuccessStatus === 'request' ? 'primary' : 'neutral'}
-          onPress={() => console.log('gotcha')}
+          onPress={() => navigation.goBack()}
           customStyle={{
             backgroundColor:
               paymentSuccessStatus === 'request' ? '#6FCF97' : '#E5F9FF',

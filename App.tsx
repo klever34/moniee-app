@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useMemo, useReducer, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -38,7 +38,6 @@ import Dashboard from './app/screens/main/Home/Dashboard';
 import RequestMoney from './app/screens/main/MoneyTab/RequestMoney';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {setAxiosToken} from './app/services/api';
-import {initialUserState, reducer, UserActions} from './app/contexts/User';
 import PaymentStatus from './app/screens/main/Payments/PaymentStatus';
 import QRCodeScreen from './app/screens/main/MoneyTab/QRCode';
 import Withdraw from './app/screens/main/Home/Withdraw';
@@ -132,9 +131,6 @@ export type ScreenProps<T extends keyof RootStackParamList> = {
 };
 
 const App: React.FC<RootStackParamList> = () => {
-  const [state, dispatch] = useReducer(reducer, initialUserState);
-  const context = {userState: state, userDispatch: dispatch};
-  console.log({context});
   const [splash, setSplash] = React.useState(true);
   const [userToken, setUserToken] = useState<null | string>(null);
   const [chosenTheme, setChosenTheme] = useState(0);
@@ -427,13 +423,7 @@ const App: React.FC<RootStackParamList> = () => {
     (async () => {
       const userDetails = await EncryptedStorage.getItem('userDetails');
       if (userDetails) {
-        const storedUserState = JSON.parse(userDetails);
         setAxiosToken();
-
-        dispatch({
-          type: UserActions.SIGN_IN_USER,
-          payload: storedUserState,
-        });
       }
     })();
   }, []);

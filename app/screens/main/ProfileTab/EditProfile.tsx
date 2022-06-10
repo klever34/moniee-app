@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -8,20 +8,57 @@ import {
   Text,
   TextInput,
   KeyboardAvoidingView,
+  Alert,
 } from 'react-native';
 import {ScreenProps} from '../../../../App';
+import {AuthContext} from '../../../../context';
 import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
 import Avatar from '../../../components/Avatar';
 import Layout from '../../../components/Layout';
 import MonieeButton from '../../../components/MonieeButton';
 import Subheader from '../../../components/Subheader';
+import {updateUserEmail} from '../../../contexts/User';
 
 const EditProfile: React.FC<ScreenProps<'EditProfile'>> = ({
   navigation,
   route,
 }) => {
   const {userObj} = route.params;
+  const [email, setEmail] = useState<string>(userObj?.email ?? '');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const {signOut} = useContext(AuthContext);
+
+  const logOutUser = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
+
+  const regEx =
+    // eslint-disable-next-line no-useless-escape
+    /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
+  const updateUserRecord = async () => {
+    setIsLoading(true);
+    try {
+      const res = await updateUserEmail({email});
+      setIsLoading(false);
+      if (res.status === 401) {
+        Alert.alert('Info', 'Your session has timed out, please login again');
+        await logOutUser();
+        return;
+      }
+      console.log(res.data);
+      Alert.alert('Success', res.data.message);
+    } catch (error) {
+      setIsLoading(false);
+    }
+  };
+
+  const onChange = (e: string) => {
+    const trimmedEmail = e.trim();
+    setEmail(trimmedEmail);
+  };
+
   return (
     <Layout>
       <KeyboardAvoidingView
@@ -73,13 +110,19 @@ const EditProfile: React.FC<ScreenProps<'EditProfile'>> = ({
                   placeholder="Add an email address"
                   style={styles.textInputStyle}
                   placeholderTextColor={StyleGuide.Colors.shades.grey[800]}
+                  onChangeText={e => onChange(e)}
+                  value={email}
                 />
               </View>
             </View>
             <MonieeButton
               title="Save Changes"
-              onPress={() => {}}
+              onPress={() => {
+                updateUserRecord();
+              }}
               customStyle={styles.btnStyle}
+              isLoading={isLoading}
+              disabled={email.length === 0 || !regEx.test(email)}
             />
           </ScrollView>
         </View>
