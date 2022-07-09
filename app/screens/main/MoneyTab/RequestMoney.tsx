@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {createRef, useEffect, useState} from 'react';
+import React, {createRef, useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import Subheader from '../../../components/Subheader';
 import {
@@ -75,6 +76,78 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
     setRequest(updatedReqPayload);
   };
 
+  const handleContacts = useCallback(async () => {
+    // const actionSheetBackupRef = contactListSheetRef.current;
+    setLoadingContacts(true);
+    if (contactList?.length! > 0) {
+      setSubContactList(contactList);
+      setLoadingContacts(false);
+      // actionSheetBackupRef?.show();
+      console.log('stops here');
+      return;
+    }
+    try {
+      // actionSheetBackupRef?.show();
+      const contacts = await Contacts.getAll();
+      const enrichedContacts = contacts.map(item => ({
+        displayName: `${item.givenName} ${item.familyName}`,
+        familyName: item.familyName,
+        givenName: item.givenName,
+        phoneNumbers: item.phoneNumbers,
+      }));
+      setContactList(enrichedContacts);
+      setSubContactList(enrichedContacts);
+      setLoadingContacts(false);
+    } catch (err: any) {
+      setLoadingContacts(false);
+    }
+    setLoading(false);
+  }, [contactList]);
+
+  const checkIfAccessGranted = useCallback(() => {
+    check(
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.CONTACTS
+        : PERMISSIONS.ANDROID.READ_CONTACTS,
+    )
+      .then(async result => {
+        switch (result) {
+          case RESULTS.UNAVAILABLE:
+            console.log(
+              'This feature is not available (on this device / in this context)',
+            );
+            break;
+          case RESULTS.DENIED:
+            // contactActionSheetRef?.current?.show();
+            grantAccess();
+            console.log(
+              'The permission has not been requested / is denied but requestable',
+            );
+            break;
+          case RESULTS.LIMITED:
+            console.log('The permission is limited: some actions are possible');
+            break;
+          case RESULTS.GRANTED:
+            console.log('The permission is granted');
+            // contactActionSheetRef?.current?.show();
+            await handleContacts();
+            break;
+          case RESULTS.BLOCKED:
+            console.log('The permission is denied and not requestable anymore');
+            break;
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    checkIfAccessGranted();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onHandlePinDone = async (pin: string) => {
     transactionPinSheetRef?.current?.hide();
     setLoading(true);
@@ -101,6 +174,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
       setLoading(false);
       navigation.replace('PaymentStatus', {
         paymentSuccessStatus: 'send',
+        amount: request.amount,
       });
     } catch (error: any) {
       console.log(error.response.data);
@@ -145,6 +219,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
       setLoading(false);
       navigation.replace('PaymentStatus', {
         paymentSuccessStatus: 'request',
+        amount: request.amount,
       });
     } catch (error: any) {
       setStopLoader(true);
@@ -152,31 +227,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
         Alert.alert('Error', error.response.data.message);
       }
     }
-  };
-
-  const handleContacts = async () => {
-    setLoadingContacts(true);
-    if (contactList?.length! > 0) {
-      setSubContactList(contactList);
-      setLoadingContacts(false);
-      console.log('stops here');
-      return;
-    }
-    try {
-      const contacts = await Contacts.getAll();
-      const enrichedContacts = contacts.map(item => ({
-        displayName: `${item.givenName} ${item.familyName}`,
-        familyName: item.familyName,
-        givenName: item.givenName,
-        phoneNumbers: item.phoneNumbers,
-      }));
-      setContactList(enrichedContacts);
-      setSubContactList(enrichedContacts);
-      setLoadingContacts(false);
-    } catch (err: any) {
-      setLoadingContacts(false);
-    }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -209,8 +259,8 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
             break;
           case RESULTS.GRANTED:
             console.log('The permission is granted');
+            // contactListSheetRef?.current?.show();
             await handleContacts();
-            contactListSheetRef?.current?.show();
             break;
           case RESULTS.BLOCKED:
             console.log('The permission is denied and not requestable anymore');
@@ -239,42 +289,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
     } catch (error) {}
   };
 
-  const checkIfAccessGranted = () => {
-    check(
-      Platform.OS === 'ios'
-        ? PERMISSIONS.IOS.CONTACTS
-        : PERMISSIONS.ANDROID.READ_CONTACTS,
-    )
-      .then(async result => {
-        switch (result) {
-          case RESULTS.UNAVAILABLE:
-            console.log(
-              'This feature is not available (on this device / in this context)',
-            );
-            break;
-          case RESULTS.DENIED:
-            contactActionSheetRef?.current?.show();
-            console.log(
-              'The permission has not been requested / is denied but requestable',
-            );
-            break;
-          case RESULTS.LIMITED:
-            console.log('The permission is limited: some actions are possible');
-            break;
-          case RESULTS.GRANTED:
-            console.log('The permission is granted');
-            handleContacts();
-            break;
-          case RESULTS.BLOCKED:
-            console.log('The permission is denied and not requestable anymore');
-            break;
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  };
-
   const onSelect = (event: boolean, item: ContactsData) => {
     let updatedSelectedContacts: any[] = [];
     if (event) {
@@ -289,11 +303,48 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
     } else {
       updatedSelectedContacts = selectedContacts.filter(
         (contact: any) =>
+          contact.phoneNumbers.length > 0 &&
           contact.phoneNumbers[0].number !== item.phoneNumbers[0].number,
       );
       setSelectedContacts(updatedSelectedContacts);
     }
   };
+
+  const renderItem = ({item}: {item: ContactsData}) => (
+    <View style={[styles.contactStyle, {justifyContent: 'space-between'}]}>
+      <TouchableOpacity style={styles.contactStyle}>
+        <Avatar name={`${item?.givenName ?? ''} ${item.familyName ?? ''}`} />
+        <TouchableOpacity
+          onPress={() => {
+            // contactListSheetRef?.current?.hide();
+            console.log(item?.displayName);
+          }}>
+          <Text style={styles.contactName}>{item?.displayName ?? ''}</Text>
+          <Text style={styles.contactMobile}>
+            {(item.phoneNumbers.length > 0 && item?.phoneNumbers[0].number) ??
+              'N/A'}
+          </Text>
+        </TouchableOpacity>
+      </TouchableOpacity>
+      {/* <View style={styles.customCheckBox} /> */}
+      <BouncyCheckbox
+        size={18}
+        isChecked={isChecked}
+        fillColor={StyleGuide.Colors.shades.green[600]}
+        unfillColor={'transparent'}
+        iconStyle={{
+          borderRadius: 20,
+          padding: 10,
+          borderColor: isChecked
+            ? StyleGuide.Colors.shades.green[600]
+            : StyleGuide.Colors.shades.grey[1100],
+        }}
+        onPress={event => {
+          onSelect(event, item);
+        }}
+      />
+    </View>
+  );
 
   return (
     <Layout>
@@ -320,7 +371,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
         </ActionSheetContainer>
       </MonieeActionSheet>
       <ActionSheet
-        initialOffsetFromBottom={0.7}
+        initialOffsetFromBottom={1}
         ref={contactListSheetRef}
         statusBarTranslucent
         bounceOnOpen={true}
@@ -333,24 +384,51 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
           style={{
             paddingHorizontal: 12,
           }}>
+          <View style={[styles.bigInputBox, {justifyContent: 'space-between'}]}>
+            <View style={{width: '70%'}}>
+              <TextInput
+                onChangeText={text => {
+                  setSearchInput(text);
+                  filterItems();
+                }}
+                style={styles.input}
+                placeholder="Search Name"
+              />
+            </View>
+            <MonieeButton
+              title={selectedContacts.length > 0 ? 'Done' : 'Close'}
+              mode={'primary'}
+              onPress={() => {
+                contactListSheetRef?.current?.hide();
+              }}
+              customStyle={{flex: 1, marginBottom: 15, marginLeft: 15}}
+            />
+          </View>
           <ScrollView
             nestedScrollEnabled
             onMomentumScrollEnd={() => {
               contactListSheetRef.current?.handleChildScrollEnd();
             }}
             style={styles.scrollview}>
-            <TextInput
-              onChangeText={text => {
-                setSearchInput(text);
-                filterItems();
-              }}
-              style={styles.input}
-              placeholder="Search Name"
-            />
             {loadContacts && (
               <ActivityIndicator size={'small'} style={styles.indicator} />
             )}
-            <ScrollView style={{flex: 1, marginBottom: 20, height: '70%'}}>
+            <View style={{flex: 1}}>
+              <FlatList
+                data={subContactList}
+                initialNumToRender={12}
+                renderItem={renderItem}
+                keyboardShouldPersistTaps="always"
+                keyExtractor={(item, index) => `${item?.toString()}-${index}`}
+                ListEmptyComponent={
+                  <View>
+                    <Text>Loading contacts...</Text>
+                  </View>
+                }
+                contentContainerStyle={{paddingBottom: scaleHeight(10)}}
+              />
+            </View>
+            {/* <ScrollView style={{flex: 1, marginBottom: 20, height: '70%'}}>
               {subContactList?.map((item: any, index: number) => (
                 <View
                   key={index}
@@ -394,15 +472,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
                   />
                 </View>
               ))}
-            </ScrollView>
-            <MonieeButton
-              title={'Done'}
-              mode={'primary'}
-              onPress={() => {
-                contactListSheetRef?.current?.hide();
-              }}
-              customStyle={{flex: 1}}
-            />
+            </ScrollView> */}
             <View style={styles.footer} />
           </ScrollView>
         </View>
@@ -441,7 +511,11 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
                   keyboardType={'number-pad'}
                   style={styles.colorBlack}
                 />
-                <TouchableOpacity onPress={() => checkIfAccessGranted()}>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleContacts();
+                    contactListSheetRef?.current?.show();
+                  }}>
                   <Image
                     source={require('../../../assets/images/book.png')}
                     style={styles.icon}
@@ -593,6 +667,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingHorizontal: 10,
     fontFamily: 'NexaRegular',
+    paddingVertical: Platform.OS === 'ios' ? 15 : 10,
   },
   contactStyle: {
     flexDirection: 'row',
@@ -617,6 +692,12 @@ const styles = StyleSheet.create({
   indicator: {
     alignSelf: 'center',
     marginVertical: 10,
+  },
+  customCheckBox: {
+    height: 20,
+    width: 20,
+    borderWidth: 0.5,
+    borderColor: StyleGuide.Colors.primary,
   },
 });
 

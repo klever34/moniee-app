@@ -17,6 +17,7 @@ type DisbursementProps = {
   bankName: string;
   bankSortCode: string;
   nuban: string;
+  bankIcon?: string;
 };
 
 const BankAccount: React.FC<ScreenProps<'BankAccount'>> = ({navigation}) => {
@@ -27,6 +28,8 @@ const BankAccount: React.FC<ScreenProps<'BankAccount'>> = ({navigation}) => {
     try {
       (async () => {
         const response = await fetchUserBankAccount();
+        console.log(response);
+
         setBankObj(response.disbursement);
         const withdrawalResponse = await fetchBankWithdrawals();
         setWithdrawals(withdrawalResponse);
@@ -40,7 +43,11 @@ const BankAccount: React.FC<ScreenProps<'BankAccount'>> = ({navigation}) => {
         <Subheader title="Bank Account" goBack={navigation.goBack} />
         <View style={styles.accountContainer}>
           <Image
-            source={require('../../../assets/images/fcmb.png')}
+            source={
+              bankObj?.bankIcon
+                ? {uri: bankObj.bankIcon}
+                : require('../../../assets/images/fcmb.png')
+            }
             style={styles.image}
           />
           <View>

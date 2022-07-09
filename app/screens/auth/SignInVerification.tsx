@@ -58,7 +58,6 @@ const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
       signIn();
       setLoading(false);
     } catch (err: any) {
-      console.log(err.response);
       setLoading(false);
       if (err?.response?.data) {
         Alert.alert('Error', err.response.data.message);

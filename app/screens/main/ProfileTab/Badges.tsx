@@ -7,6 +7,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import ActionSheet from 'react-native-actions-sheet';
 import {ScreenProps} from '../../../../App';
@@ -17,8 +18,10 @@ import Layout from '../../../components/Layout';
 import MonieeActionSheet from '../../../components/MonieeActionSheet';
 import MonieeButton from '../../../components/MonieeButton';
 import Subheader from '../../../components/Subheader';
+import {BadgeTypes} from './Profile';
 
-const Badges: React.FC<ScreenProps<'Badges'>> = ({navigation}) => {
+const Badges: React.FC<ScreenProps<'Badges'>> = ({navigation, route}) => {
+  const {achievements, medals} = route.params;
   const actionSheetRef = createRef<ActionSheet>();
 
   return (
@@ -28,25 +31,31 @@ const Badges: React.FC<ScreenProps<'Badges'>> = ({navigation}) => {
           <Subheader title="Badges" goBack={navigation.goBack} />
           <Text style={styles.headerText}>My Achievements</Text>
           <View style={styles.listWrapper}>
-            {[0, 0, 0, 0].map((item, index) => (
+            {achievements.map((item: BadgeTypes, index: number) => (
               <TouchableOpacity
                 onPress={() => actionSheetRef?.current?.show()}
                 style={styles.listItem}
                 key={index}>
-                <View style={styles.fakeCircle} />
-                <Text style={styles.subText}>Oloye</Text>
+                <Image
+                  source={{uri: item.image_url}}
+                  style={styles.avatarImage}
+                />
+                <Text style={styles.subText}>{item.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <Text style={styles.headerText}>Medals of Honor</Text>
           <View style={styles.listWrapper}>
-            {[0, 0, 0, 0, 0, 0, 0, 0].map((item, index) => (
+            {medals.map((item: BadgeTypes, index: number) => (
               <TouchableOpacity
                 onPress={() => actionSheetRef?.current?.show()}
                 style={styles.listItem}
                 key={index}>
-                <View style={styles.fakeCircle} />
-                <Text style={styles.subText}>Omo Iya Mi</Text>
+                <Image
+                  source={{uri: item.image_url}}
+                  style={styles.avatarImage}
+                />
+                <Text style={styles.subText}>{item.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -114,6 +123,12 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.black,
     marginTop: 10,
     lineHeight: 20,
+  },
+  avatarImage: {
+    height: 50,
+    width: 50,
+    marginRight: 5,
+    borderRadius: 50,
   },
 });
 

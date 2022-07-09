@@ -45,6 +45,7 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
             destination={item.meta.destination}
             reason={item.meta.reason}
             type={item.type}
+            created_at={item.created_at}
           />
         ))}
       </View>

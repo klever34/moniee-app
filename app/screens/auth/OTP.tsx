@@ -99,7 +99,8 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({navigation, route}) => {
       <View style={styles.main}>
         <Header title="Verification 🛡" goBack={navigation.goBack}>
           <Text style={styles.subHeader}>
-            Lacus integer imperdiet lacinia consectetur erat scelerisque.
+            Please input the four digit code that was sent{'\n'}to your phone
+            number below
           </Text>
         </Header>
         <View style={styles.body}>
@@ -215,7 +216,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     lineHeight: scaleHeight(15),
     fontFamily: 'NexaRegular',
-    // textAlign: 'center',
   },
   inputBox: {
     borderWidth: 1,

@@ -72,6 +72,18 @@ const BankDetails: React.FC<ScreenProps<'BankDetails'>> = ({navigation}) => {
   const [bankNameHolder, setBankNameHolder] = useState<string>('Select Bank');
   const [chosenBank, setChosenBank] = useState<any>();
 
+  useEffect(() => {
+    try {
+      (async () => {
+        const banks = await getBanks();
+        console.log(banks);
+
+        setBankArray(banks);
+        setSubBankArray(banks);
+      })();
+    } catch (error) {}
+  }, []);
+
   const handleBankRegistration = async () => {
     setLoading(true);
     const id = await EncryptedStorage.getItem('user-id');
@@ -83,6 +95,7 @@ const BankDetails: React.FC<ScreenProps<'BankDetails'>> = ({navigation}) => {
           nuban: bankObject.account_number,
           bvn: bankObject.bvn,
           bankName: chosenBank?.name,
+          bankIcon: chosenBank?.icon,
         },
         Number(id),
       );
@@ -119,16 +132,6 @@ const BankDetails: React.FC<ScreenProps<'BankDetails'>> = ({navigation}) => {
       setSubBankArray(newData);
     } catch (error) {}
   };
-
-  useEffect(() => {
-    try {
-      (async () => {
-        const banks = await getBanks();
-        setBankArray(banks);
-        setSubBankArray(banks);
-      })();
-    } catch (error) {}
-  }, []);
 
   const hasFormErrors = (errors: any) => {
     const errorFields = Object.keys(errors);
@@ -325,6 +328,7 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.shades.grey[200],
     marginTop: 10,
     fontFamily: 'NexaRegular',
+    lineHeight: 20,
   },
   iconStyle: {
     color: StyleGuide.Colors.shades.grey[900],

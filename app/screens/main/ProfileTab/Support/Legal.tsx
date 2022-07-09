@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, Linking} from 'react-native';
 import {ScreenProps} from '../../../../../App';
 import Layout from '../../../../components/Layout';
 import MenuIcon from '../../../../components/MenuIcon';
@@ -13,10 +13,12 @@ const Legal: React.FC<ScreenProps<'Legal'>> = ({navigation}) => {
         <MenuIcon
           title="Terms of Use"
           image={require('../../../../assets/images/document.png')}
+          onPress={() => Linking.openURL('https://moniee.app/terms/')}
         />
         <MenuIcon
           title="Privacy Policy"
           image={require('../../../../assets/images/barcode.png')}
+          onPress={() => Linking.openURL('https://moniee.app/privacy')}
         />
       </View>
     </Layout>

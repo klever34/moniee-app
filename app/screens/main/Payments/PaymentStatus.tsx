@@ -7,12 +7,16 @@ import {scaledSize} from '../../../assets/style-guide/typography';
 import Layout from '../../../components/Layout';
 import MonieeButton from '../../../components/MonieeButton';
 import {scaleHeight, scaleWidth} from '../../../utils';
+import formatNumber from 'format-number';
 
 const PaymentStatus: React.FC<ScreenProps<'PaymentStatus'>> = ({
   route,
   navigation,
 }) => {
-  const {paymentSuccessStatus} = route.params;
+  const {paymentSuccessStatus, amount} = route.params;
+
+  const formatAsNumber = (arg: number): string => formatNumber()(arg);
+
   const bgColor =
     paymentSuccessStatus === 'request'
       ? StyleGuide.Colors.shades.green[800]
@@ -61,7 +65,11 @@ const PaymentStatus: React.FC<ScreenProps<'PaymentStatus'>> = ({
             {paymentSuccessStatus === 'request' ? 'Request Sent' : 'Money Sent'}
           </Text>
           <Text style={subtitleColor}>
-            Your request for ₦2,000 has been sent
+            {paymentSuccessStatus === 'request'
+              ? `Your request for ${formatAsNumber(amount)} has been sent`
+              : `Your request to send ${formatAsNumber(
+                  amount,
+                )} has been received`}
           </Text>
         </View>
         <MonieeButton

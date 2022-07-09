@@ -70,6 +70,8 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
     try {
       (async () => {
         const userInfo = await fetchUserInfo();
+        console.log({userInfo});
+
         await fetchRecentTransactions();
         setUserObj(userInfo);
       })();
@@ -167,7 +169,9 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
             />
           </View>
         </View>
-        <View style={styles.quickSend}>
+
+        {/* Quick Send Section */}
+        {/* <View style={styles.quickSend}>
           <Text style={styles.headerText}>Quick Send</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {[0, 0, 0, 0, 0, 0, 0, 0].map((item, index) => (
@@ -180,7 +184,8 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
               </View>
             ))}
           </ScrollView>
-        </View>
+        </View> */}
+
         <View style={[styles.transactionsBox, {padding: 0}]}>
           <Text style={[styles.headerText, {padding: 20}]}>
             Recent Transactions

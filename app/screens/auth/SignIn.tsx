@@ -34,7 +34,7 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
   const userDecoder: Decoder<Partial<User>> = Decoder.object({
     country_code: Decoder.string,
     mobile: Decoder.string.satisfy({
-      predicate: (arg: string) => arg.length >= 9,
+      predicate: (arg: string) => arg.length >= 10,
       failureMessage: 'The mobile must be at least 9 digits long',
     }),
   });
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   extraStyle: {
     textAlign: 'center',
     color: StyleGuide.Colors.shades.grey[1400],
-    fontSize: StyleGuide.Typography[12],
+    fontSize: StyleGuide.Typography[10],
   },
   createText: {
     color: StyleGuide.Colors.shades.magenta[25],

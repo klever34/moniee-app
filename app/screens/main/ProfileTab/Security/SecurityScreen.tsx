@@ -13,7 +13,7 @@ const SecurityScreen: React.FC<ScreenProps<'SecurityScreen'>> = ({
   return (
     <Layout>
       <View style={styles.main}>
-        <Subheader title="Account Upgrade" goBack={navigation.goBack} />
+        <Subheader title="Security" goBack={navigation.goBack} />
         <MenuIcon
           title="Change PIN"
           image={require('../../../../assets/images/lock.png')}

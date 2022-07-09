@@ -88,7 +88,7 @@ const ConfirmPassword: React.FC<ScreenProps<'ConfirmPassword'>> = ({
       <View style={styles.main}>
         <Header goBack={navigation.goBack} title="Confirm PIN 🙈">
           <Text style={styles.subHeader}>
-            Facilisis mauris, potenti vitae cras risus.
+            Please input your four digit PIN again
           </Text>
         </Header>
         <View style={styles.body}>

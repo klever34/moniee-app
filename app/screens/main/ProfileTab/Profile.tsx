@@ -13,7 +13,7 @@ import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
 import Icon from '../../../components/Icon';
 import MenuIcon from '../../../components/MenuIcon';
-import {fetchUserInfo} from '../../../contexts/User';
+import {fetchBadges, fetchUserInfo} from '../../../contexts/User';
 import {useIsFocused} from '@react-navigation/native';
 
 export type APIUserOBJ = {
@@ -27,15 +27,46 @@ export type APIUserOBJ = {
   tier: number;
 };
 
+export type BadgeTypes = {
+  name: string;
+  description: string;
+  image_url: string;
+  slug: string;
+  type: string;
+};
+
 const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
   const [userObj, setUserObj] = useState<APIUserOBJ>();
   const isFocused = useIsFocused();
+  const [achievements, setAchievements] = useState<BadgeTypes[]>();
+  const [medals, setMedals] = useState<BadgeTypes[]>();
 
   useEffect(() => {
     try {
       (async () => {
         const userInfo = await fetchUserInfo();
         setUserObj(userInfo);
+      })();
+    } catch (error: any) {}
+  }, [isFocused]);
+
+  useEffect(() => {
+    try {
+      (async () => {
+        const userData = await fetchBadges();
+
+        const userAchievements = userData.filter(
+          (item: BadgeTypes) => item.type === 'achievement',
+        );
+        console.log({userAchievements});
+        setAchievements(userAchievements);
+
+        const userMedals = userData.filter(
+          (item: BadgeTypes) => item.type === 'medal',
+        );
+        console.log({userMedals});
+
+        setMedals(userMedals);
       })();
     } catch (error: any) {}
   }, [isFocused]);
@@ -88,18 +119,22 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.achieveContainer}>
-          <Text style={styles.headerText}>Achievements</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[0, 0, 0, 0].map((item, index) => (
-              <View key={index} style={styles.sendItems}>
-                <Image
-                  source={require('../../../assets/images/avatar.png')}
-                  style={styles.avatarImage}
-                />
-                <Text style={styles.accountName}>Oloye</Text>
-              </View>
-            ))}
-          </ScrollView>
+          {achievements && achievements.length > 0 && (
+            <View>
+              <Text style={styles.headerText}>Achievements</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {achievements?.map((item: BadgeTypes, index: number) => (
+                  <View key={index} style={styles.sendItems}>
+                    <Image
+                      source={{uri: item.image_url}}
+                      style={styles.avatarImage}
+                    />
+                    <Text style={styles.accountName}>{item.name}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
           <MenuIcon
             title="Bank Account"
             image={require('../../../assets/images/bank.png')}
@@ -113,7 +148,12 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
           <MenuIcon
             title="Badges"
             image={require('../../../assets/images/heart.png')}
-            onPress={() => navigation.push('Badges')}
+            onPress={() =>
+              navigation.push('Badges', {
+                achievements,
+                medals,
+              })
+            }
           />
           <MenuIcon
             title="Security"
@@ -211,9 +251,10 @@ const styles = StyleSheet.create({
     margin: 5,
   },
   avatarImage: {
-    height: 40,
-    width: 40,
+    height: 50,
+    width: 50,
     marginRight: 5,
+    borderRadius: 50,
   },
   headerText: {
     fontSize: scaledSize(14),

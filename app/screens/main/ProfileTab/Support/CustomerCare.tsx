@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, Linking} from 'react-native';
 import {ScreenProps} from '../../../../../App';
 import Layout from '../../../../components/Layout';
 import MenuIcon from '../../../../components/MenuIcon';
@@ -13,6 +13,7 @@ const CustomerCare: React.FC<ScreenProps<'CustomerCare'>> = ({navigation}) => {
         <MenuIcon
           title="FAQs"
           image={require('../../../../assets/images/search.png')}
+          onPress={() => Linking.openURL('https://moniee.app/faqs/')}
         />
         <MenuIcon
           title="Chat with Us"

@@ -80,7 +80,7 @@ export type RootStackParamList = {
   Dashboard: undefined;
   RequestMoney: {funds_type: 'request' | 'send'; amount: string};
   TabScreens: undefined;
-  PaymentStatus: {paymentSuccessStatus: string};
+  PaymentStatus: {paymentSuccessStatus: string; amount: number};
   QRCodeScreen: undefined;
   Withdraw: undefined;
   WithdrawSuccessful: undefined;
@@ -94,14 +94,14 @@ export type RootStackParamList = {
   AccountUpgrade: undefined;
   SecurityScreen: undefined;
   ChangePin: undefined;
-  SetNewPin: undefined;
-  ConfirmNewPin: undefined;
+  SetNewPin: {old_pin: string};
+  ConfirmNewPin: {old_pin: string; new_pin: string};
   GovtID: undefined;
   ResidentialAddress: undefined;
   VerificationStatus: {idStatus: 'success' | 'failed'};
   TierList: undefined;
   BankStatement: undefined;
-  Badges: undefined;
+  Badges: {achievements: any; medals: any};
 };
 
 export type MainNavParamList = {
@@ -431,7 +431,7 @@ const App: React.FC<RootStackParamList> = () => {
   useEffect(() => {
     setTimeout(() => {
       setSplash(false);
-    }, 2000);
+    }, 3000);
   }, []);
 
   const appTheme = [

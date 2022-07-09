@@ -228,3 +228,12 @@ export const updateUserEmail = async (payload: Pick<NewUser, 'email'>) => {
   const result = await API.patch(`user/${user_id}`, payload);
   return result;
 };
+
+export const changeUserPasscode = async (payload: {
+  old_pin: string;
+  new_pin: string;
+}) => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  const result = await API.patch(`user/${user_id}/change-pin`, payload);
+  return result;
+};

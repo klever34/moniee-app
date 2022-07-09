@@ -56,7 +56,8 @@ const SecurePassword: React.FC<ScreenProps<'SecurePassword'>> = ({
       <View style={styles.main}>
         <Header goBack={navigation.goBack} title="Set PIN 🙈">
           <Text style={styles.subHeader}>
-            Facilisis mauris, potenti vitae cras risus.
+            Select a four digit PIN that your would use for{'\n'}all
+            transactions
           </Text>
         </Header>
         <View style={styles.body}>

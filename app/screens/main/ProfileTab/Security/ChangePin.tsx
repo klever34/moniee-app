@@ -11,7 +11,9 @@ const ChangePin: React.FC<ScreenProps<'ChangePin'>> = ({navigation}) => {
 
   useEffect(() => {
     if (defaultPin.length === 4) {
-      navigation.replace('SetNewPin');
+      navigation.replace('SetNewPin', {
+        old_pin: defaultPin,
+      });
     }
   }, [defaultPin, navigation]);
 

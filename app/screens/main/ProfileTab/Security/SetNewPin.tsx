@@ -5,15 +5,19 @@ import {ScreenProps} from '../../../../../App';
 import StyleGuide from '../../../../assets/style-guide';
 import Keypad from '../../../../components/Keypad';
 
-const SetNewPin: React.FC<ScreenProps<'SetNewPin'>> = ({navigation}) => {
+const SetNewPin: React.FC<ScreenProps<'SetNewPin'>> = ({navigation, route}) => {
   const [isLoading] = useState<boolean>(false);
   const [defaultPin, setPIN] = useState<string>('');
+  const {old_pin} = route.params;
 
   useEffect(() => {
     if (defaultPin.length === 4) {
-      navigation.replace('ConfirmNewPin');
+      navigation.replace('ConfirmNewPin', {
+        old_pin,
+        new_pin: defaultPin,
+      });
     }
-  }, [defaultPin, navigation]);
+  }, [defaultPin, navigation, old_pin]);
 
   const getKeyString = (numericKey: any) => {
     if (numericKey === 'c') {

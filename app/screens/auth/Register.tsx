@@ -122,7 +122,8 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
         <View style={{flex: 1}}>
           <Header title="Let’s begin 🚀" goBack={navigation.goBack}>
             <Text style={styles.subHeader}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Welcome to the Moniee App, your pathway to{'\n'}experiencing
+              freedom. Lets get started!
             </Text>
           </Header>
           <View style={styles.bigInputBox}>
@@ -192,7 +193,7 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
 
           <View style={styles.subtext}>
             <MonieeButton
-              title="Get Started"
+              title="Proceed"
               mode={
                 hasFormBeenTouched(hasFormFieldBeenTouched) &&
                 !hasFormErrors(formErrors)
@@ -208,6 +209,12 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
               onPress={handleRegister}
               isLoading={isLoading}
             />
+            <Text
+              onPress={() => navigation.goBack()}
+              style={[styles.subHeader, styles.extraStyle]}>
+              Already have an account?{' '}
+              <Text style={styles.createText}>Login here</Text>
+            </Text>
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -221,6 +228,7 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.shades.grey[200],
     marginTop: 10,
     fontFamily: 'NexaRegular',
+    lineHeight: 20,
   },
   iconStyle: {
     color: StyleGuide.Colors.shades.grey[900],
@@ -278,7 +286,7 @@ const styles = StyleSheet.create({
   extraStyle: {
     textAlign: 'center',
     color: StyleGuide.Colors.shades.grey[1400],
-    fontSize: StyleGuide.Typography[12],
+    fontSize: StyleGuide.Typography[10],
   },
   createText: {
     color: StyleGuide.Colors.shades.magenta[25],

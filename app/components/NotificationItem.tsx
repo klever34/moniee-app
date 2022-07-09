@@ -4,12 +4,14 @@ import {View, StyleSheet, Image, Text, Platform} from 'react-native';
 import StyleGuide from '../assets/style-guide';
 import {scaledSize} from '../assets/style-guide/typography';
 import MonieeButton from './MonieeButton';
+import moment from 'moment';
 
 type NotificationProps = {
   amount: number;
   destination: string;
   reason: string;
   type: string;
+  created_at: string;
 };
 
 const NotificationItem: React.FC<NotificationProps> = ({
@@ -17,11 +19,33 @@ const NotificationItem: React.FC<NotificationProps> = ({
   destination,
   reason,
   type,
+  created_at,
 }) => {
+  const dateConverter = (myDate: string) => {
+    var fromNow = moment(myDate).fromNow();
+    return moment(myDate).calendar(null, {
+      lastWeek: '[Last] dddd',
+      lastDay: '[Yesterday]',
+      sameDay: '[Today]',
+      nextDay: '[Tomorrow]',
+      nextWeek: 'dddd',
+      sameElse: function () {
+        return '[' + fromNow + ']';
+      },
+    });
+  };
   const getNotificationType = () => {
     switch (type) {
       case 'request-sent':
         return 'Request Sent';
+      case 'withdrawal':
+        return 'Withdrawal';
+      case 'request':
+        return 'Request';
+      case 'request-declined':
+        return 'Request Declined';
+      case 'deposit':
+        return 'Deposit';
       default:
         break;
     }
@@ -60,6 +84,14 @@ const NotificationItem: React.FC<NotificationProps> = ({
             <Text style={styles.boldText}> {reason}</Text>
           </Text>
         );
+      case 'request-declined':
+        return (
+          <Text style={styles.body}>
+            Your request:<Text style={styles.boldText}> ₦{amount}</Text> for
+            <Text style={styles.boldText}> {reason}</Text> has been declined by
+            <Text style={styles.boldText}> {destination}</Text>
+          </Text>
+        );
       default:
         return (
           <Text style={styles.body}>
@@ -78,9 +110,9 @@ const NotificationItem: React.FC<NotificationProps> = ({
       <View style={styles.rightItem}>
         <View style={styles.topText}>
           <Text style={styles.notyType}>{getNotificationType()}</Text>
-          <Text style={styles.notyDate}>· Today </Text>
+          <Text style={styles.notyDate}>· {dateConverter(created_at)} </Text>
         </View>
-        {descriptionBody()}
+        <View>{descriptionBody()}</View>
         {type === 'request' && (
           <View style={styles.btn}>
             <MonieeButton
@@ -115,10 +147,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    padding: 20,
+    padding: 5,
+    marginVertical: 5,
   },
   rightItem: {
     marginLeft: 5,
+    flex: 1,
   },
   topText: {
     flexDirection: 'row',

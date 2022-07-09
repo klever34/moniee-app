@@ -1,21 +1,20 @@
 import OTPInputView from '@twotalltotems/react-native-otp-input';
-import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, StyleSheet, Text, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {ActivityIndicator, Alert, StyleSheet, Text, View} from 'react-native';
 import {ScreenProps} from '../../../../../App';
 import StyleGuide from '../../../../assets/style-guide';
 import Keypad from '../../../../components/Keypad';
+import {changeUserPasscode} from '../../../../contexts/User';
+import {useToast} from 'react-native-toast-notifications';
 
 const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({
   navigation,
+  route,
 }) => {
-  const [isLoading] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
   const [defaultPin, setPIN] = useState<string>('');
-
-  useEffect(() => {
-    if (defaultPin.length === 4) {
-      navigation.goBack();
-    }
-  }, [defaultPin, navigation]);
+  const {old_pin, new_pin} = route.params;
+  const toast = useToast();
 
   const getKeyString = (numericKey: any) => {
     if (numericKey === 'c') {
@@ -30,6 +29,42 @@ const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({
       return;
     }
   };
+
+  const changeUserPin = useCallback(async () => {
+    if (defaultPin !== new_pin) {
+      Alert.alert('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await changeUserPasscode({
+        old_pin,
+        new_pin,
+      });
+      toast.show(response.data.message, {
+        type: 'custom_toast',
+        animationDuration: 100,
+        data: {
+          title: 'Info',
+        },
+      });
+      setLoading(false);
+      navigation.goBack();
+    } catch (err: any) {
+      console.log(err.response);
+      setLoading(false);
+      if (err?.response?.data) {
+        Alert.alert('Error', err.response.data.message);
+      }
+    }
+  }, [defaultPin, navigation, new_pin, old_pin, toast]);
+
+  useEffect(() => {
+    if (defaultPin.length === 4) {
+      changeUserPin();
+    }
+  }, [changeUserPin, defaultPin]);
 
   return (
     <View style={styles.main}>
