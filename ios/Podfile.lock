@@ -240,9 +240,11 @@ PODS:
     - React-Core
   - react-native-contacts (7.0.4):
     - React-Core
+  - react-native-document-picker (8.1.1):
+    - React-Core
   - react-native-encrypted-storage (4.0.2):
     - React-Core
-  - react-native-image-picker (4.8.3):
+  - react-native-image-picker (4.8.4):
     - React-Core
   - react-native-netinfo (8.3.0):
     - React-Core
@@ -325,6 +327,8 @@ PODS:
     - React-Core
   - RNCMaskedView (0.1.11):
     - React
+  - RNFS (2.20.0):
+    - React-Core
   - RNGestureHandler (2.4.2):
     - React-Core
   - RNPermissions (3.3.1):
@@ -394,6 +398,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-camera (from `../node_modules/react-native-camera`)
   - react-native-contacts (from `../node_modules/react-native-contacts`)
+  - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-encrypted-storage (from `../node_modules/react-native-encrypted-storage`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -414,6 +419,7 @@ DEPENDENCIES:
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -479,6 +485,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-camera"
   react-native-contacts:
     :path: "../node_modules/react-native-contacts"
+  react-native-document-picker:
+    :path: "../node_modules/react-native-document-picker"
   react-native-encrypted-storage:
     :path: "../node_modules/react-native-encrypted-storage"
   react-native-image-picker:
@@ -519,6 +527,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/clipboard"
   RNCMaskedView:
     :path: "../node_modules/@react-native-community/masked-view"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNPermissions:
@@ -562,8 +572,9 @@ SPEC CHECKSUMS:
   React-logger: a0833912d93b36b791b7a521672d8ee89107aff1
   react-native-camera: 210a872c84d3aa0982a9223047ef9e743ed694fa
   react-native-contacts: 1bff4c47816d611f26b06fa8b3eaf2db4d1b2c86
+  react-native-document-picker: 3c074fa194fddbcd46867c3a1c44b9331bd9dcbc
   react-native-encrypted-storage: 837c733334debf626204f03d867c7e01d8741e2f
-  react-native-image-picker: eb0a159c2a00bcfb49f0469fcc6b164329e9d4ca
+  react-native-image-picker: 9f9eb160a4f4fc0702f9d0a60fa453b413258ef8
   react-native-netinfo: ebbcd8fbe1a0ce7035e43cd18c5a545dcb93dd08
   react-native-safe-area-context: 923e8a02d3bd88ca7a6b6c9b3db1b94591044b0c
   react-native-select-contact: 7ed15ace95f78491ed058932c3556a63a54f3133
@@ -582,6 +593,7 @@ SPEC CHECKSUMS:
   RNBackgroundFetch: e8f33d94dce34792efaaef6eb7cd8ba466672e16
   RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
   RNCMaskedView: f127cd9652acfa31b91dcff613e07ba18b774db6
+  RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 61628a2c859172551aa2100d3e73d1e57878392f
   RNPermissions: 7ad8d93b004e6bc85c89e27a102afcde90e07efa
   RNReanimated: 64573e25e078ae6bec03b891586d50b9ec284393

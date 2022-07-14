@@ -248,3 +248,44 @@ export const getUserValidation = async () => {
   const result = await API.get(`user/${user_id}/validation`);
   return result;
 };
+
+export const updateUserTierTwo = async (payload: {
+  photoid_type: string;
+  photoid_number: string;
+  selfie_image: string;
+  photoid_image: string;
+}) => {
+  setAxiosToken();
+  const user_id = await savedUser();
+  const result = await API.post(`user/${user_id}/validation/tier-two`, payload);
+  return result;
+};
+
+export const updateUserAddress = async (payload: {
+  street: string;
+  city: string;
+  state: string;
+}) => {
+  const user_id = await savedUser();
+  const result = await API.post(
+    `user/${user_id}/validation/tier-three/address`,
+    payload,
+  );
+  return result;
+};
+
+export const updateUserBankStatement = async (statement: FormData) => {
+  const user_id = await savedUser();
+  setAxiosToken();
+  const result = await API.post(
+    `user/${user_id}/validation/tier-three/statement`,
+    statement,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
+  );
+  console.log(result);
+  return result;
+};

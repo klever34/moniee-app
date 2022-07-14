@@ -29,14 +29,25 @@ import Layout from '../../../../../components/Layout';
 import MonieeActionSheet from '../../../../../components/MonieeActionSheet';
 import MonieeButton from '../../../../../components/MonieeButton';
 import Subheader from '../../../../../components/Subheader';
-import {getUserValidation} from '../../../../../contexts/User';
+import {
+  getUserValidation,
+  updateUserTierTwo,
+} from '../../../../../contexts/User';
 import {useIsFocused} from '@react-navigation/native';
+import {useImageInput} from '../../../../../utils/camera';
 
 const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const [hasId, setHasId] = useState<boolean>(false);
   const actionSheetRef = createRef<ActionSheet>();
   const [isChecked] = useState<boolean>(false);
-  const [selectedOption, setOption] = useState<string>('Select Type of ID');
+  const [selectedOption, setOption] = useState<string>('Select ID');
+  const [selectedOptionType, setOptionType] = useState<string>('');
+  const [base64Str, setBase64Str] = useState<string>('');
+  const [selfieStr, setSelfieStr] = useState<string>('');
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const [idNumber, setIDNumber] = useState<string>('');
+  const [currentImg, setCurrentImg] = useState<string>('selfie');
+  const [selfieUri, setSelfieUri] = useState<string>('');
   const availableIds = [
     {
       id: 'international-passport',
@@ -61,6 +72,34 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const logOutUser = useCallback(async () => {
     await signOut();
   }, [signOut]);
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  const {
+    imageUrl,
+    handleCameraLauncher,
+    // handleImageGalleryLauncher,
+    // setImageUrl,
+  } = useImageInput({
+    maxWidth: 256,
+    maxHeight: 256,
+    mediaType: 'photo',
+  });
+
+  useEffect(() => {
+    const uri = imageUrl?.uri;
+    const base64 = imageUrl?.base64;
+    console.log({base64: base64?.length});
+    if (base64) {
+      if (currentImg === 'id') {
+        setAvatarUrl(uri!);
+        setBase64Str(base64);
+      } else {
+        setSelfieStr(base64);
+        setSelfieUri(uri!);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageUrl]);
 
   useEffect(() => {
     try {
@@ -73,7 +112,7 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
           await logOutUser();
           return;
         }
-        setHasId(userVal.data.data.tierTwo);
+        setHasId(userVal.data.data.tierTwo.status);
       })();
     } catch (error: any) {}
   }, [isFocused, logOutUser]);
@@ -81,9 +120,32 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const onSelect = (event: boolean, item: {id: string; name: string}) => {
     if (event) {
       setOption(item.name);
+      setOptionType(item.id);
       actionSheetRef?.current?.hide();
     } else {
       setOption('Select Type of ID');
+      setOptionType('');
+    }
+  };
+
+  const updateTier = async () => {
+    setLoading(true);
+    try {
+      const response = await updateUserTierTwo({
+        photoid_image: base64Str,
+        photoid_type: selectedOptionType,
+        photoid_number: idNumber,
+        selfie_image: selfieStr,
+      });
+      console.log(response.data);
+      setLoading(false);
+      // navigation.replace('VerificationStatus', {
+      //   idStatus: 'failed',
+      // });
+    } catch (error: any) {
+      console.log('error');
+      console.log(error.response);
+      setLoading(false);
     }
   };
 
@@ -124,7 +186,7 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
             <View style={[styles.main]}>
               <View style={styles.main}>
                 <TouchableOpacity
-                  style={[styles.uploadBox, {padding: 0}]}
+                  style={[styles.uploadBox, {padding: 0, marginBottom: 5}]}
                   onPress={() => actionSheetRef?.current?.show()}>
                   <Text style={styles.selectTextStyle}>{selectedOption}</Text>
                 </TouchableOpacity>
@@ -132,29 +194,76 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
                   style={styles.textInputStyle}
                   placeholder={'ID Number'}
                   placeholderTextColor={StyleGuide.Colors.shades.grey[50]}
+                  onChangeText={text => setIDNumber(text)}
                 />
-                <TouchableOpacity style={styles.uploadBox}>
-                  <Icon
-                    type="material-community-icons"
-                    name="camera-outline"
-                    size={24}
-                    color={StyleGuide.Colors.shades.magenta[25]}
-                    style={{alignSelf: 'center'}}
-                  />
-                  <Text style={styles.subText}>
-                    Tap to take{'\n'}
-                    snapshot of ID
-                  </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleCameraLauncher();
+                    setCurrentImg('selfie');
+                  }}
+                  style={styles.uploadBox}>
+                  {!selfieUri ? (
+                    <>
+                      <Icon
+                        type="material-community-icons"
+                        name="camera-outline"
+                        size={24}
+                        color={StyleGuide.Colors.shades.magenta[25]}
+                        style={{alignSelf: 'center'}}
+                      />
+                      <Text style={styles.subText}>
+                        Please take a{'\n'}
+                        Selfie
+                      </Text>
+                    </>
+                  ) : (
+                    <Image
+                      source={{uri: selfieUri ? selfieUri : undefined}}
+                      style={styles.imageStyle}
+                    />
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    handleCameraLauncher();
+                    setCurrentImg('id');
+                  }}
+                  style={styles.uploadBox}>
+                  {!avatarUrl ? (
+                    <>
+                      <Icon
+                        type="material-community-icons"
+                        name="camera-outline"
+                        size={24}
+                        color={StyleGuide.Colors.shades.magenta[25]}
+                        style={{alignSelf: 'center'}}
+                      />
+                      <Text style={styles.subText}>
+                        Tap to take{'\n'}
+                        snapshot of ID
+                      </Text>
+                    </>
+                  ) : (
+                    <Image
+                      source={{uri: avatarUrl ? avatarUrl : undefined}}
+                      style={styles.imageStyle}
+                    />
+                  )}
                 </TouchableOpacity>
               </View>
               <MonieeButton
                 title="Submit"
                 mode={'primary'}
                 onPress={() => {
-                  navigation.replace('VerificationStatus', {
-                    idStatus: 'failed',
-                  });
+                  updateTier();
                 }}
+                isLoading={isLoading}
+                disabled={
+                  selectedOption === 'Select ID' ||
+                  idNumber.length === 0 ||
+                  base64Str.length === 0
+                }
+                customStyle={{marginTop: 20}}
               />
             </View>
           )}
@@ -167,7 +276,6 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
             <View>
               {availableIds.map((item, index) => (
                 <View style={styles.actionItem} key={index}>
-                  <Text style={styles.subText}>{item.name}</Text>
                   <BouncyCheckbox
                     size={18}
                     isChecked={isChecked}
@@ -184,6 +292,11 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
                       console.log(event);
                       onSelect(event, item);
                     }}
+                    textComponent={
+                      <Text style={[styles.subText, {marginLeft: 10}]}>
+                        {item.name}
+                      </Text>
+                    }
                   />
                 </View>
               ))}
@@ -234,7 +347,7 @@ const styles = StyleSheet.create({
   uploadBox: {
     backgroundColor: StyleGuide.Colors.shades.grey[600],
     padding: 30,
-    marginVertical: 30,
+    marginTop: 20,
   },
   actionItem: {
     flexDirection: 'row',
@@ -245,6 +358,11 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.shades.grey[800],
     fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     padding: 10,
+  },
+  imageStyle: {
+    height: 200,
+    width: '100%',
+    resizeMode: 'contain',
   },
 });
 

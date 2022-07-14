@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {createRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -7,20 +7,77 @@ import {
   Image,
   Text,
   Platform,
+  Alert,
 } from 'react-native';
-import ActionSheet from 'react-native-actions-sheet';
 import {ScreenProps} from '../../../../../../App';
 import StyleGuide from '../../../../../assets/style-guide';
 import {scaledSize} from '../../../../../assets/style-guide/typography';
 import Layout from '../../../../../components/Layout';
 import MonieeButton from '../../../../../components/MonieeButton';
 import Subheader from '../../../../../components/Subheader';
+import DocumentPicker, {
+  DirectoryPickerResponse,
+  DocumentPickerResponse,
+  isInProgress,
+  types,
+} from 'react-native-document-picker';
+import {updateUserBankStatement} from '../../../../../contexts/User';
 
 const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
   navigation,
 }) => {
   const [hasBankStatement] = useState<boolean>(false);
-  const actionSheetRef = createRef<ActionSheet>();
+  const [isLoading, setLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<
+    Array<DocumentPickerResponse> | DirectoryPickerResponse | undefined | null
+  >();
+
+  const updateStatement = useCallback(async () => {
+    setLoading(true);
+    try {
+      const newFile = new FormData();
+      newFile.append('statement', {
+        //@ts-ignore
+        uri: result[0]?.uri!,
+        //@ts-ignore
+        type: result[0]?.type!,
+        //@ts-ignore
+        name: result[0]?.name!,
+      });
+      const response = await updateUserBankStatement(newFile);
+      console.log(response.data);
+      setLoading(false);
+      // navigation.replace('VerificationStatus', {
+      //   idStatus: 'failed',
+      // });
+    } catch (error: any) {
+      if (error?.response?.data?.message) {
+        Alert.alert('Error', error.response.data.message);
+      }
+      setLoading(false);
+    }
+  }, [result]);
+
+  useEffect(() => {
+    console.log(JSON.stringify(result, null, 2));
+    if (result) {
+      console.log('single result');
+      updateStatement();
+    }
+  }, [result, updateStatement]);
+
+  const handleError = (err: unknown) => {
+    if (DocumentPicker.isCancel(err)) {
+      console.warn('cancelled');
+      // User cancelled the picker, exit any dialogs or menus and move on
+    } else if (isInProgress(err)) {
+      console.warn(
+        'multiple pickers were opened, only the last will be considered',
+      );
+    } else {
+      throw err;
+    }
+  };
 
   return (
     <Layout>
@@ -48,8 +105,13 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
                   }}
                   textColor={StyleGuide.Colors.primary}
                   onPress={() => {
-                    actionSheetRef?.current?.show();
+                    DocumentPicker.pick({
+                      type: types.pdf,
+                    })
+                      .then(setResult)
+                      .catch(handleError);
                   }}
+                  isLoading={isLoading}
                 />
               </View>
             </View>
