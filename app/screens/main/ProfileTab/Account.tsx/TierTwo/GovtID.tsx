@@ -1,5 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {createRef, useState} from 'react';
+import React, {
+  createRef,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
   View,
   StyleSheet,
@@ -9,10 +15,12 @@ import {
   Platform,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import ActionSheet from 'react-native-actions-sheet';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import {ScreenProps} from '../../../../../../App';
+import {AuthContext} from '../../../../../../context';
 import StyleGuide from '../../../../../assets/style-guide';
 import {scaledSize} from '../../../../../assets/style-guide/typography';
 import ActionSheetContainer from '../../../../../components/ActionSheetContainer';
@@ -21,6 +29,8 @@ import Layout from '../../../../../components/Layout';
 import MonieeActionSheet from '../../../../../components/MonieeActionSheet';
 import MonieeButton from '../../../../../components/MonieeButton';
 import Subheader from '../../../../../components/Subheader';
+import {getUserValidation} from '../../../../../contexts/User';
+import {useIsFocused} from '@react-navigation/native';
 
 const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const [hasId, setHasId] = useState<boolean>(false);
@@ -29,7 +39,7 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const [selectedOption, setOption] = useState<string>('Select Type of ID');
   const availableIds = [
     {
-      id: 'intl-pass',
+      id: 'international-passport',
       name: 'International passport',
     },
     {
@@ -45,6 +55,28 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
       name: 'Drivers’ licence',
     },
   ];
+  const [showForm, setForm] = useState<boolean>(false);
+  const {signOut} = useContext(AuthContext);
+  const isFocused = useIsFocused();
+  const logOutUser = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
+
+  useEffect(() => {
+    try {
+      (async () => {
+        const userVal = await getUserValidation();
+        console.log(userVal.status);
+
+        if (userVal.status === 401) {
+          Alert.alert('Info', 'Your session has timed out, please login again');
+          await logOutUser();
+          return;
+        }
+        setHasId(userVal.data.data.tierTwo);
+      })();
+    } catch (error: any) {}
+  }, [isFocused, logOutUser]);
 
   const onSelect = (event: boolean, item: {id: string; name: string}) => {
     if (event) {
@@ -60,7 +92,7 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
       <View style={styles.main}>
         <Subheader title="Govt. Issued ID" goBack={navigation.goBack} />
         <ScrollView style={styles.main}>
-          {!hasId && (
+          {!hasId && !showForm && (
             <View style={styles.noId}>
               <Image
                 source={require('../../../../../assets/images/badge.png')}
@@ -82,13 +114,13 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
                   }}
                   textColor={StyleGuide.Colors.primary}
                   onPress={() => {
-                    setHasId(true);
+                    setForm(true);
                   }}
                 />
               </View>
             </View>
           )}
-          {hasId && (
+          {showForm && (
             <View style={[styles.main]}>
               <View style={styles.main}>
                 <TouchableOpacity

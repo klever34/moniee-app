@@ -110,6 +110,11 @@ const forgeUserData = (apiResponse: any) => {
   return userDetails;
 };
 
+export const savedUser = async () => {
+  const user_id = await EncryptedStorage.getItem('user-id');
+  return user_id;
+};
+
 export const verifyOtp = async (payload: VerifyOtpPayload): Promise<any> => {
   const fetchResponse = await API.post('/auth/signup', payload);
   const userDetails = forgeUserData(fetchResponse);
@@ -235,5 +240,11 @@ export const changeUserPasscode = async (payload: {
 }) => {
   const user_id = await EncryptedStorage.getItem('user-id');
   const result = await API.patch(`user/${user_id}/change-pin`, payload);
+  return result;
+};
+
+export const getUserValidation = async () => {
+  const user_id = await savedUser();
+  const result = await API.get(`user/${user_id}/validation`);
   return result;
 };

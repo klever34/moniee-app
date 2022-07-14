@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,21 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
 import Icon from '../../../components/Icon';
 import MenuIcon from '../../../components/MenuIcon';
-import {fetchBadges, fetchUserInfo} from '../../../contexts/User';
+import {
+  fetchBadges,
+  fetchUserInfo,
+  getUserValidation,
+} from '../../../contexts/User';
 import {useIsFocused} from '@react-navigation/native';
+import Avatar from '../../../components/Avatar';
+import {AuthContext} from '../../../../context';
 
 export type APIUserOBJ = {
   avatarUrl: null;
@@ -40,14 +47,44 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
   const isFocused = useIsFocused();
   const [achievements, setAchievements] = useState<BadgeTypes[]>();
   const [medals, setMedals] = useState<BadgeTypes[]>();
+  const {signOut} = useContext(AuthContext);
+
+  const logOutUser = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
 
   useEffect(() => {
     try {
       (async () => {
+        const userVal = await getUserValidation();
+        console.log(userVal.status);
+        if (userVal.status === 401) {
+          Alert.alert('Info', 'Your session has timed out, please login again');
+          await logOutUser();
+          return;
+        }
+        console.log(userVal.data.data);
+      })();
+    } catch (error: any) {
+      console.log('error');
+      console.log(error);
+    }
+  }, [isFocused, logOutUser]);
+
+  useEffect(() => {
+    try {
+      (async () => {
+        console.log('here');
+
         const userInfo = await fetchUserInfo();
+        console.log({userInfo});
+
         setUserObj(userInfo);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      console.log('error');
+      console.log(error);
+    }
   }, [isFocused]);
 
   useEffect(() => {
@@ -68,7 +105,10 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
 
         setMedals(userMedals);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      console.log('error');
+      console.log(error);
+    }
   }, [isFocused]);
 
   return (
@@ -83,10 +123,23 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
         </View>
         <View style={styles.profileContainer}>
           <View style={styles.smallProfileContainer}>
-            <Image
+            {/* <Image
               source={require('../../../assets/images/avatar.png')}
               style={styles.image}
-            />
+            /> */}
+            {userObj?.avatarUrl ? (
+              <Image
+                source={{uri: userObj?.avatarUrl}}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <View style={styles.avatarBox}>
+                <Avatar
+                  size="large"
+                  name={`${userObj?.firstName} ${userObj?.lastName}`}
+                />
+              </View>
+            )}
             <View style={styles.midContent}>
               <Text style={styles.nameStyle}>
                 {userObj?.firstName} {userObj?.lastName}
@@ -273,6 +326,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginVertical: 15,
+  },
+  avatarBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
