@@ -286,6 +286,5 @@ export const updateUserBankStatement = async (statement: FormData) => {
       },
     },
   );
-  console.log(result);
   return result;
 };

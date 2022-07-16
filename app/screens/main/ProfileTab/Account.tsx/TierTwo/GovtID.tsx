@@ -16,6 +16,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import ActionSheet from 'react-native-actions-sheet';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
@@ -35,6 +36,7 @@ import {
 } from '../../../../../contexts/User';
 import {useIsFocused} from '@react-navigation/native';
 import {useImageInput} from '../../../../../utils/camera';
+import {useToast} from 'react-native-toast-notifications';
 
 const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const [hasId, setHasId] = useState<boolean>(false);
@@ -45,9 +47,11 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const [base64Str, setBase64Str] = useState<string>('');
   const [selfieStr, setSelfieStr] = useState<string>('');
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [pageLoading, setPageLoading] = useState<boolean>(false);
   const [idNumber, setIDNumber] = useState<string>('');
   const [currentImg, setCurrentImg] = useState<string>('selfie');
   const [selfieUri, setSelfieUri] = useState<string>('');
+  const toast = useToast();
   const availableIds = [
     {
       id: 'international-passport',
@@ -69,17 +73,14 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const [showForm, setForm] = useState<boolean>(false);
   const {signOut} = useContext(AuthContext);
   const isFocused = useIsFocused();
+
   const logOutUser = useCallback(async () => {
     await signOut();
   }, [signOut]);
+
   const [avatarUrl, setAvatarUrl] = useState('');
 
-  const {
-    imageUrl,
-    handleCameraLauncher,
-    // handleImageGalleryLauncher,
-    // setImageUrl,
-  } = useImageInput({
+  const {imageUrl, handleCameraLauncher} = useImageInput({
     maxWidth: 256,
     maxHeight: 256,
     mediaType: 'photo',
@@ -104,17 +105,21 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   useEffect(() => {
     try {
       (async () => {
+        setPageLoading(true);
         const userVal = await getUserValidation();
-        console.log(userVal.status);
-
         if (userVal.status === 401) {
           Alert.alert('Info', 'Your session has timed out, please login again');
           await logOutUser();
           return;
         }
+        setPageLoading(false);
+        console.log(userVal.data.data.tierTwo.status);
         setHasId(userVal.data.data.tierTwo.status);
+        // console.log(userVal.data.data.tierTwo.status);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      setPageLoading(false);
+    }
   }, [isFocused, logOutUser]);
 
   const onSelect = (event: boolean, item: {id: string; name: string}) => {
@@ -138,16 +143,39 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
         selfie_image: selfieStr,
       });
       console.log(response.data);
+      toast.show(response.data.message, {
+        type: 'custom_toast',
+        animationDuration: 150,
+        data: {
+          title: 'Success',
+        },
+      });
       setLoading(false);
-      // navigation.replace('VerificationStatus', {
-      //   idStatus: 'failed',
-      // });
     } catch (error: any) {
       console.log('error');
       console.log(error.response);
+      toast.show('Could not submit ID', {
+        type: 'custom_toast',
+        animationDuration: 150,
+        data: {
+          title: 'Error',
+        },
+      });
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
 
   return (
     <Layout>
@@ -206,7 +234,7 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
                     <>
                       <Icon
                         type="material-community-icons"
-                        name="camera-outline"
+                        name="camera-front-variant"
                         size={24}
                         color={StyleGuide.Colors.shades.magenta[25]}
                         style={{alignSelf: 'center'}}
@@ -363,6 +391,11 @@ const styles = StyleSheet.create({
     height: 200,
     width: '100%',
     resizeMode: 'contain',
+  },
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

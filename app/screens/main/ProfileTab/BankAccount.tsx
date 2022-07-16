@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
 import {View, StyleSheet, Platform, Image, Text} from 'react-native';
+import {SvgUri} from 'react-native-svg';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
@@ -42,15 +43,8 @@ const BankAccount: React.FC<ScreenProps<'BankAccount'>> = ({navigation}) => {
       <View style={styles.main}>
         <Subheader title="Bank Account" goBack={navigation.goBack} />
         <View style={styles.accountContainer}>
-          <Image
-            source={
-              bankObj?.bankIcon
-                ? {uri: bankObj.bankIcon}
-                : require('../../../assets/images/fcmb.png')
-            }
-            style={styles.image}
-          />
-          <View>
+          <SvgUri width="30%" height="50%" uri={bankObj?.bankIcon!} />
+          <View style={{marginLeft: 15}}>
             <Text style={styles.headerText}>{bankObj?.bankName}</Text>
             <Text style={styles.subText}>{bankObj?.accountName}</Text>
             <Text style={styles.subText}>{bankObj?.nuban}</Text>

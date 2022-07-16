@@ -17,6 +17,7 @@ import {
   Alert,
   NativeSyntheticEvent,
   TextInputChangeEventData,
+  ActivityIndicator,
 } from 'react-native';
 import ActionSheet from 'react-native-actions-sheet';
 import {ScreenProps} from '../../../../../../App';
@@ -45,6 +46,7 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
   const {signOut} = useContext(AuthContext);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   // const [showForm, setForm] = useState<boolean>(false);
+  const [pageLoading, setPageLoading] = useState<boolean>(false);
 
   type AddressType = {
     street: string;
@@ -117,16 +119,17 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
   }, [signOut]);
 
   const getUserAddress = useCallback(async () => {
+    setPageLoading(true);
     const userVal = await getUserValidation();
     console.log(userVal.status);
-
+    setPageLoading(false);
     if (userVal.status === 401) {
       Alert.alert('Info', 'Your session has timed out, please login again');
       await logOutUser();
       return;
     }
     setHasAddress(userVal.data.data.tierThree.address.submitted);
-    console.log(userVal.data.data.tierThree.address);
+    console.log(userVal.data.data.tierThree);
   }, [logOutUser]);
 
   useEffect(() => {
@@ -134,7 +137,9 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
       (async () => {
         await getUserAddress();
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      setPageLoading(false);
+    }
   }, [getUserAddress, isFocused]);
 
   const updateAddress = async () => {
@@ -148,6 +153,14 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
       console.log(response.data.message);
       setLoading(false);
       await getUserAddress();
+      actionSheetRef?.current?.hide();
+      toast.show(response.data.message, {
+        type: 'custom_toast',
+        animationDuration: 150,
+        data: {
+          title: 'Success',
+        },
+      });
     } catch (error: any) {
       console.log(error.response.data.message);
       if (error?.response?.data?.message) {
@@ -163,6 +176,18 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
       setLoading(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
 
   return (
     <Layout>
@@ -332,6 +357,11 @@ const styles = StyleSheet.create({
     fontSize: StyleGuide.Typography[10],
     marginVertical: scaleHeight(6),
     fontFamily: 'NexaRegular',
+  },
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

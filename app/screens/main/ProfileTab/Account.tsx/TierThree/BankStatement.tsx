@@ -8,6 +8,7 @@ import {
   Text,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {ScreenProps} from '../../../../../../App';
 import StyleGuide from '../../../../../assets/style-guide';
@@ -21,16 +22,41 @@ import DocumentPicker, {
   isInProgress,
   types,
 } from 'react-native-document-picker';
-import {updateUserBankStatement} from '../../../../../contexts/User';
+import {
+  getUserValidation,
+  updateUserBankStatement,
+} from '../../../../../contexts/User';
+import {useToast} from 'react-native-toast-notifications';
 
 const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
   navigation,
 }) => {
-  const [hasBankStatement] = useState<boolean>(false);
+  const [hasBankStatement, setHasBankStatement] = useState<boolean>(false);
   const [isLoading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<
     Array<DocumentPickerResponse> | DirectoryPickerResponse | undefined | null
   >();
+  const toast = useToast();
+  const [pageLoading, setPageLoading] = useState<boolean>(false);
+
+  const getUserBankStatement = useCallback(async () => {
+    const userVal = await getUserValidation();
+    console.log(userVal.status);
+    setHasBankStatement(userVal.data.data.tierThree.bankStatement.submitted);
+    console.log(userVal.data.data.tierThree);
+  }, []);
+
+  useEffect(() => {
+    try {
+      (async () => {
+        setPageLoading(true);
+        await getUserBankStatement();
+        setPageLoading(false);
+      })();
+    } catch (error: any) {
+      setPageLoading(false);
+    }
+  }, [getUserBankStatement]);
 
   const updateStatement = useCallback(async () => {
     setLoading(true);
@@ -50,13 +76,23 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
       // navigation.replace('VerificationStatus', {
       //   idStatus: 'failed',
       // });
+      toast.show(response.data.message, {
+        type: 'custom_toast',
+        animationDuration: 150,
+        data: {
+          title: 'Success',
+        },
+      });
     } catch (error: any) {
       if (error?.response?.data?.message) {
         Alert.alert('Error', error.response.data.message);
       }
       setLoading(false);
+      navigation.replace('VerificationStatus', {
+        idStatus: 'failed',
+      });
     }
-  }, [result]);
+  }, [navigation, result, toast]);
 
   useEffect(() => {
     console.log(JSON.stringify(result, null, 2));
@@ -78,6 +114,18 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
       throw err;
     }
   };
+
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
 
   return (
     <Layout>
@@ -118,7 +166,9 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
           )}
           {hasBankStatement && (
             <View style={[styles.main]}>
-              <Text style={styles.selectTextStyle} />
+              <Text style={styles.selectTextStyle}>
+                User has bank statement
+              </Text>
             </View>
           )}
         </ScrollView>
@@ -177,6 +227,11 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.shades.grey[800],
     fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     padding: 10,
+  },
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
