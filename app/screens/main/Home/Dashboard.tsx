@@ -70,8 +70,6 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
     try {
       (async () => {
         const userInfo = await fetchUserInfo();
-        console.log({userInfo});
-
         await fetchRecentTransactions();
         setUserObj(userInfo);
       })();
@@ -89,9 +87,7 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
         }
         setBalance(response.data.balance);
       })();
-    } catch (error: any) {
-      console.log(error);
-    }
+    } catch (error: any) {}
   }, [logOutUser, isFocused]);
 
   return (

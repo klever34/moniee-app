@@ -46,7 +46,6 @@ const ConfirmPassword: React.FC<ScreenProps<'ConfirmPassword'>> = ({
       signIn();
       setLoading(false);
     } catch (error: any) {
-      console.log(error.response.data);
       if (error?.response?.data) {
         Alert.alert('Error', error.response.data.message);
       }

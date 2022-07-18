@@ -121,7 +121,6 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
   const getUserAddress = useCallback(async () => {
     setPageLoading(true);
     const userVal = await getUserValidation();
-    console.log(userVal.status);
     setPageLoading(false);
     if (userVal.status === 401) {
       Alert.alert('Info', 'Your session has timed out, please login again');
@@ -129,7 +128,6 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
       return;
     }
     setHasAddress(userVal.data.data.tierThree.address.submitted);
-    console.log(userVal.data.data.tierThree);
   }, [logOutUser]);
 
   useEffect(() => {
@@ -150,7 +148,6 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
         city: addressObj.city,
         state: addressObj.state,
       });
-      console.log(response.data.message);
       setLoading(false);
       await getUserAddress();
       actionSheetRef?.current?.hide();
@@ -162,7 +159,6 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
         },
       });
     } catch (error: any) {
-      console.log(error.response.data.message);
       if (error?.response?.data?.message) {
         // Alert.alert('Error', error.response.data.message);
         toast.show(error.response.data.message, {

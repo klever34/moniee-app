@@ -127,8 +127,7 @@ export const verifyOtp = async (payload: VerifyOtpPayload): Promise<any> => {
 export const sendOtp = async (
   payload: Pick<NewUser, 'mobile'>,
 ): Promise<void> => {
-  const res = await API.post('/auth/signup/otp', payload);
-  console.log(res.data);
+  await API.post('/auth/signup/otp', payload);
 };
 
 export const setUserPin = async (
@@ -173,7 +172,6 @@ export const fetchWalletBalance = async (): Promise<any> => {
 
 export const sendMoney = async (payload: MoneyRequestPayload): Promise<any> => {
   const result = await API.post('/transfer', payload);
-  console.log(result);
   return result.data;
 };
 

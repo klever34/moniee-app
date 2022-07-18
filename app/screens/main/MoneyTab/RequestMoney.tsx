@@ -83,7 +83,6 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
       setSubContactList(contactList);
       setLoadingContacts(false);
       // actionSheetBackupRef?.show();
-      console.log('stops here');
       return;
     }
     try {

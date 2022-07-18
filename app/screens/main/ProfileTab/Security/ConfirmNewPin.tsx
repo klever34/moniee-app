@@ -52,7 +52,6 @@ const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({
       setLoading(false);
       navigation.goBack();
     } catch (err: any) {
-      console.log(err.response);
       setLoading(false);
       if (err?.response?.data) {
         Alert.alert('Error', err.response.data.message);
@@ -77,9 +76,9 @@ const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({
             keyboardType={'number-pad'}
             codeInputFieldStyle={styles.underlineStyleBase}
             codeInputHighlightStyle={styles.underlineStyleHighLighted}
-            onCodeChanged={code => {
-              console.log({code});
-            }}
+            // onCodeChanged={code => {
+            //   console.log({code});
+            // }}
             editable={false}
             placeholderCharacter={'ᐧ'}
             secureTextEntry={true}

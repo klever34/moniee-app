@@ -43,9 +43,8 @@ const ChangePin: React.FC<ScreenProps<'ChangePin'>> = ({navigation}) => {
             codeInputFieldStyle={styles.underlineStyleBase}
             codeInputHighlightStyle={styles.underlineStyleHighLighted}
             // onCodeFilled={handleVerifyOtp}
-            onCodeChanged={code => {
-              console.log({code});
-            }}
+            // onCodeChanged={code => {
+            // }}
             editable={false}
             placeholderCharacter={'ᐧ'}
             secureTextEntry={true}

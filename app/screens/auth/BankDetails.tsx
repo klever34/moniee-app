@@ -76,8 +76,6 @@ const BankDetails: React.FC<ScreenProps<'BankDetails'>> = ({navigation}) => {
     try {
       (async () => {
         const banks = await getBanks();
-        console.log(banks);
-
         setBankArray(banks);
         setSubBankArray(banks);
       })();
@@ -102,8 +100,6 @@ const BankDetails: React.FC<ScreenProps<'BankDetails'>> = ({navigation}) => {
       navigation.push('SecurePassword');
       return;
     } catch (err: any) {
-      console.log(err.response);
-
       setLoading(false);
       if (err?.response?.data) {
         Alert.alert('Error', err.response.data.message);

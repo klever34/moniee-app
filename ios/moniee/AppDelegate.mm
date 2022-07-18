@@ -4,7 +4,10 @@
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
+//#import "Intercom/Intercom.h"
+
 #import <React/RCTAppSetupUtils.h>
+
 
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
@@ -82,6 +85,9 @@ static void ClearKeychainIfNecessary() {
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+  
+//  [IntercomModule setApiKey:@"93c8516a920734e1585d117dbe0baf181332166e" forAppId:@"p7iidsq2];
+//   [Intercom setApiKey:@"93c8516a920734e1585d117dbe0baf181332166e" forAppId:@"p7iidsq2"];
   return YES;
 }
 

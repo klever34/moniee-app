@@ -44,10 +44,6 @@ export const useImageInput = (
   const handleCameraLauncher = useCallback((): Promise<ImagePickerResult> => {
     return new Promise((resolve, reject) => {
       const onResponse = async (response: ImagePickerResponse) => {
-        console.log('res assets');
-
-        console.log(response.assets);
-
         const {assets} = response;
         if (response.didCancel || !assets?.length) {
           return;

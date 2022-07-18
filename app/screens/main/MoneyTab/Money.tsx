@@ -157,7 +157,7 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
           placeholderTextColor={StyleGuide.Colors.white}
           keyboardType={'number-pad'}
           placeholder={'0 '}
-          onChange={e => console.log(Number(e.nativeEvent.text))}
+          // onChange={e => console.log(Number(e.nativeEvent.text))}
           editable={false}
           style={[styles.currency, {alignSelf: 'center'}]}>
           {moneyValue}

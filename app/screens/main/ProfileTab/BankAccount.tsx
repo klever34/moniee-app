@@ -29,8 +29,6 @@ const BankAccount: React.FC<ScreenProps<'BankAccount'>> = ({navigation}) => {
     try {
       (async () => {
         const response = await fetchUserBankAccount();
-        console.log(response);
-
         setBankObj(response.disbursement);
         const withdrawalResponse = await fetchBankWithdrawals();
         setWithdrawals(withdrawalResponse);

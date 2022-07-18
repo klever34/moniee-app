@@ -76,9 +76,7 @@ const Withdraw: React.FC<ScreenProps<'Withdraw'>> = ({navigation}) => {
       } else {
         navigation.replace('WithdrawSuccessful');
       }
-      console.log(response.data);
     } catch (error: any) {
-      console.log(error.response.data);
       setLoading(false);
       if (error?.response?.data) {
         Alert.alert('Error', error.response.data.message);
@@ -132,7 +130,7 @@ const Withdraw: React.FC<ScreenProps<'Withdraw'>> = ({navigation}) => {
           placeholderTextColor={StyleGuide.Colors.primary}
           keyboardType={'number-pad'}
           placeholder={'0 '}
-          onChange={e => console.log(Number(e.nativeEvent.text))}
+          // onChange={e => console.log(Number(e.nativeEvent.text))}
           editable={false}
           style={[styles.currency, {alignSelf: 'center'}]}>
           {moneyValue}

@@ -89,7 +89,6 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   useEffect(() => {
     const uri = imageUrl?.uri;
     const base64 = imageUrl?.base64;
-    console.log({base64: base64?.length});
     if (base64) {
       if (currentImg === 'id') {
         setAvatarUrl(uri!);
@@ -113,9 +112,7 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
           return;
         }
         setPageLoading(false);
-        console.log(userVal.data.data.tierTwo.status);
         setHasId(userVal.data.data.tierTwo.status);
-        // console.log(userVal.data.data.tierTwo.status);
       })();
     } catch (error: any) {
       setPageLoading(false);
@@ -142,7 +139,6 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
         photoid_number: idNumber,
         selfie_image: selfieStr,
       });
-      console.log(response.data);
       toast.show(response.data.message, {
         type: 'custom_toast',
         animationDuration: 150,
@@ -152,8 +148,6 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
       });
       setLoading(false);
     } catch (error: any) {
-      console.log('error');
-      console.log(error.response);
       toast.show('Could not submit ID', {
         type: 'custom_toast',
         animationDuration: 150,
@@ -317,7 +311,6 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
                         : StyleGuide.Colors.shades.grey[1100],
                     }}
                     onPress={event => {
-                      console.log(event);
                       onSelect(event, item);
                     }}
                     textComponent={

@@ -81,7 +81,6 @@ const SignInVerification: React.FC<ScreenProps<'SignInVerification'>> = ({
     }
     if (numericKey === '<' && defaultOtp.length !== 0) {
       const newString = defaultOtp.slice(0, defaultOtp.length - 1);
-      console.log({newString});
       setOTP(newString);
     } else if (!isNaN(numericKey) && defaultOtp.length < 4) {
       setOTP(`${defaultOtp}${numericKey}`);

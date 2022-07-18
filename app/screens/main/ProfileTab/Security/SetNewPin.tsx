@@ -45,9 +45,9 @@ const SetNewPin: React.FC<ScreenProps<'SetNewPin'>> = ({navigation, route}) => {
             codeInputFieldStyle={styles.underlineStyleBase}
             codeInputHighlightStyle={styles.underlineStyleHighLighted}
             // onCodeFilled={handleVerifyOtp}
-            onCodeChanged={code => {
-              console.log({code});
-            }}
+            // onCodeChanged={code => {
+            //   console.log({code});
+            // }}
             editable={false}
             placeholderCharacter={'ᐧ'}
             secureTextEntry={true}

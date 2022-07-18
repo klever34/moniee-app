@@ -58,9 +58,7 @@ const TransactionPin = ({
                 codeInputFieldStyle={styles.underlineStyleBase}
                 codeInputHighlightStyle={styles.underlineStyleHighLighted}
                 // onCodeFilled={handleVerifyOtp}
-                onCodeChanged={code => {
-                  console.log({code});
-                }}
+                // onCodeChanged={}
                 editable={false}
                 placeholderCharacter={'ᐧ'}
                 secureTextEntry={true}

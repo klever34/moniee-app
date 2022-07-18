@@ -41,9 +41,7 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
 
   const getUserBankStatement = useCallback(async () => {
     const userVal = await getUserValidation();
-    console.log(userVal.status);
     setHasBankStatement(userVal.data.data.tierThree.bankStatement.submitted);
-    console.log(userVal.data.data.tierThree);
   }, []);
 
   useEffect(() => {
@@ -71,7 +69,6 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
         name: result[0]?.name!,
       });
       const response = await updateUserBankStatement(newFile);
-      console.log(response.data);
       setLoading(false);
       // navigation.replace('VerificationStatus', {
       //   idStatus: 'failed',
@@ -95,21 +92,15 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
   }, [navigation, result, toast]);
 
   useEffect(() => {
-    console.log(JSON.stringify(result, null, 2));
     if (result) {
-      console.log('single result');
       updateStatement();
     }
   }, [result, updateStatement]);
 
   const handleError = (err: unknown) => {
     if (DocumentPicker.isCancel(err)) {
-      console.warn('cancelled');
       // User cancelled the picker, exit any dialogs or menus and move on
     } else if (isInProgress(err)) {
-      console.warn(
-        'multiple pickers were opened, only the last will be considered',
-      );
     } else {
       throw err;
     }

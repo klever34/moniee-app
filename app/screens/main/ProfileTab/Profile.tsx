@@ -57,34 +57,23 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
     try {
       (async () => {
         const userVal = await getUserValidation();
-        console.log(userVal.status);
         if (userVal.status === 401) {
           Alert.alert('Info', 'Your session has timed out, please login again');
           await logOutUser();
           return;
         }
-        console.log(userVal.data.data);
       })();
-    } catch (error: any) {
-      console.log('error');
-      console.log(error);
-    }
+    } catch (error: any) {}
   }, [isFocused, logOutUser]);
 
   useEffect(() => {
     try {
       (async () => {
-        console.log('here');
-
         const userInfo = await fetchUserInfo();
-        console.log({userInfo});
 
         setUserObj(userInfo);
       })();
-    } catch (error: any) {
-      console.log('error');
-      console.log(error);
-    }
+    } catch (error: any) {}
   }, [isFocused]);
 
   useEffect(() => {
@@ -95,32 +84,29 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
         const userAchievements = userData.filter(
           (item: BadgeTypes) => item.type === 'achievement',
         );
-        console.log({userAchievements});
         setAchievements(userAchievements);
 
         const userMedals = userData.filter(
           (item: BadgeTypes) => item.type === 'medal',
         );
-        console.log({userMedals});
 
         setMedals(userMedals);
       })();
-    } catch (error: any) {
-      console.log('error');
-      console.log(error);
-    }
+    } catch (error: any) {}
   }, [isFocused]);
 
   return (
     <View style={[styles.main]}>
       <ScrollView style={[styles.main]}>
-        <View style={styles.redBanner}>
-          <Text style={styles.redBannerTitle}>Attention Required!</Text>
-          <Text style={styles.redBannerSubTitle}>
-            Complete your profile to remove transaction{'\n'}limits and upgrade
-            your account
-          </Text>
-        </View>
+        {userObj?.tier === 1 && (
+          <View style={styles.redBanner}>
+            <Text style={styles.redBannerTitle}>Attention Required!</Text>
+            <Text style={styles.redBannerSubTitle}>
+              Complete your profile to remove transaction{'\n'}limits and
+              upgrade your account
+            </Text>
+          </View>
+        )}
         <View style={styles.profileContainer}>
           <View style={styles.smallProfileContainer}>
             {/* <Image

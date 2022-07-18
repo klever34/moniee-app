@@ -1,4 +1,8 @@
 rootProject.name = 'moniee'
+include ':react-native-intercom'
+project(':react-native-intercom').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-intercom/android')
+include ':@intercom_intercom-react-native'
+project(':@intercom_intercom-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/@intercom/intercom-react-native/android')
 include ':react-native-svg'
 project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-svg/android')
 include ':react-native-vector-icons'

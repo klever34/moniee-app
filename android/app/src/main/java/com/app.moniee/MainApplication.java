@@ -13,6 +13,7 @@ import com.facebook.soloader.SoLoader;
 import com.app.moniee.newarchitecture.MainApplicationReactNativeHost;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import com.intercom.reactnative.IntercomModule;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -57,6 +58,7 @@ public class MainApplication extends Application implements ReactApplication {
     ReactFeatureFlags.useTurboModules = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
     SoLoader.init(this, /* native exopackage */ false);
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+    IntercomModule.initialize(this, "android_sdk-948435bcdc35d30ddc01e7e11538d8b7b2088eb3", "p7iidsq2");
   }
 
   /**

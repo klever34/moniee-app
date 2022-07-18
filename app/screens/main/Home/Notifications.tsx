@@ -30,9 +30,7 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
         }
         setNotifications(response);
       })();
-    } catch (error: any) {
-      console.log(error);
-    }
+    } catch (error: any) {}
   }, [logOutUser, isFocused]);
   return (
     <Layout>

@@ -47,7 +47,6 @@ const EditProfile: React.FC<ScreenProps<'EditProfile'>> = ({
         await logOutUser();
         return;
       }
-      console.log(res.data);
       Alert.alert('Success', res.data.message);
     } catch (error) {
       setIsLoading(false);
