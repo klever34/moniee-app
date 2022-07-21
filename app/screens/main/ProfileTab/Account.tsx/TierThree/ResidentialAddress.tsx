@@ -220,9 +220,18 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
           )}
           {hasAddress && (
             <View style={[styles.main]}>
-              <Text style={styles.selectTextStyle}>
-                12, First Street, Second City, Third State, Nigeria
-              </Text>
+              <View style={styles.noId}>
+                <Image
+                  source={require('../../../../../assets/images/address.png')}
+                  style={styles.badgeStyle}
+                />
+                <Text style={styles.headerText}>
+                  Residential Address Address
+                </Text>
+                <Text style={styles.subText}>
+                  You've already added your place of{'\n'}permanent residence
+                </Text>
+              </View>
             </View>
           )}
         </ScrollView>

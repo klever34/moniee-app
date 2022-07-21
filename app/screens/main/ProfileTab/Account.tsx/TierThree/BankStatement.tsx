@@ -156,9 +156,14 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
             </View>
           )}
           {hasBankStatement && (
-            <View style={[styles.main]}>
-              <Text style={styles.selectTextStyle}>
-                User has bank statement
+            <View style={styles.noId}>
+              <Image
+                source={require('../../../../../assets/images/statement.png')}
+                style={styles.badgeStyle}
+              />
+              <Text style={styles.headerText}>Bank Statement Added</Text>
+              <Text style={styles.subText}>
+                You have successfully added{'\n'}your bank statement features
               </Text>
             </View>
           )}

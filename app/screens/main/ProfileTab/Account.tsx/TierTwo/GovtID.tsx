@@ -204,6 +204,18 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
               </View>
             </View>
           )}
+          {hasId && (
+            <View style={styles.noId}>
+              <Image
+                source={require('../../../../../assets/images/badge.png')}
+                style={styles.badgeStyle}
+              />
+              <Text style={styles.headerText}>Government Issued ID Added</Text>
+              <Text style={styles.subText}>
+                You've already added a government ID
+              </Text>
+            </View>
+          )}
           {showForm && (
             <View style={[styles.main]}>
               <View style={styles.main}>
