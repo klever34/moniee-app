@@ -61,6 +61,7 @@ import ResidentialAddress from './app/screens/main/ProfileTab/Account.tsx/TierTh
 import TierList from './app/screens/main/ProfileTab/Account.tsx/TierThree/TierList';
 import BankStatement from './app/screens/main/ProfileTab/Account.tsx/TierThree/BankStatement';
 import Badges from './app/screens/main/ProfileTab/Badges';
+import {initializeFB} from './app/services/notifications';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -134,6 +135,12 @@ const App: React.FC<RootStackParamList> = () => {
   const [splash, setSplash] = React.useState(true);
   const [userToken, setUserToken] = useState<null | string>(null);
   const [chosenTheme, setChosenTheme] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      initializeFB();
+    })();
+  });
 
   const AppStack = createStackNavigator<RootStackParamList>();
   const NoAuthScreensNavigator = () => (

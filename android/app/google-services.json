@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "98173146192",
+    "project_id": "moniee",
+    "storage_bucket": "moniee.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98173146192:android:fcaf2e528fd4d3056d6d55",
+        "android_client_info": {
+          "package_name": "com.app.moniee"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "98173146192-6h0j0hap7ucff4pv1v610n0nrm6ae0ju.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCaRcxq0RPMUaBYBKMbTikMzSWWkVxqjX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "98173146192-6h0j0hap7ucff4pv1v610n0nrm6ae0ju.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

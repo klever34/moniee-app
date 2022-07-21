@@ -89,6 +89,11 @@ type WithdrawalPayload = {
   pin: string;
 };
 
+type fcmTokenPayload = {
+  token: string;
+  platform?: string;
+};
+
 const forgeUserData = (apiResponse: any) => {
   const coreUserData = apiResponse.data;
   const userDetails: User = {
@@ -285,4 +290,8 @@ export const updateUserBankStatement = async (statement: FormData) => {
     },
   );
   return result;
+};
+
+export const saveFcmToken = async (payload: fcmTokenPayload): Promise<void> => {
+  await API.post('/fcm/token', payload);
 };

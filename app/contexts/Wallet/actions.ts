@@ -18,6 +18,6 @@ export const setTransactions = (
 });
 
 export const getTransactions = async (): Promise<Transaction> => {
-  const fetchResponse = await API.get('/customers/transactions');
+  const fetchResponse = await API.get('');
   return fetchResponse.data.data;
 };
