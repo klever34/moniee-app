@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import ActionSheet from 'react-native-actions-sheet';
 import {ScreenProps} from '../../../../App';
@@ -50,6 +51,7 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
   const [userObj, setUserObj] = useState<APIUserOBJ>();
   const isFocused = useIsFocused();
   const [bankObj, setBankObj] = useState<CollectionProps>();
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   const formatAsNumber = (arg: number): string => formatNumber()(arg);
 
@@ -83,12 +85,28 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
         if (response === 401) {
           Alert.alert('Info', 'Your session has timed out, please login again');
           await logOutUser();
+          setPageLoading(false);
           return;
         }
         setBalance(response.data.balance);
+        setPageLoading(false);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      setPageLoading(false);
+    }
   }, [logOutUser, isFocused]);
+
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.main]}>
@@ -151,6 +169,7 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
               onPress={() => {
                 accountDetailsSheetRef?.current?.show();
               }}
+              disabled={!balance}
             />
             <MonieeButton
               title="Withdraw"
@@ -162,6 +181,7 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
               onPress={() => {
                 navigation.push('Withdraw');
               }}
+              disabled={!balance}
             />
           </View>
         </View>
@@ -407,6 +427,11 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   emptyTranxBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  isLoading: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

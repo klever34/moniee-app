@@ -1,5 +1,12 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import {View, StyleSheet, Alert} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Text,
+  Platform,
+} from 'react-native';
 import {ScreenProps} from '../../../../App';
 import Layout from '../../../components/Layout';
 import NotificationItem from '../../../components/NotificationItem';
@@ -7,6 +14,8 @@ import Subheader from '../../../components/Subheader';
 import {useIsFocused} from '@react-navigation/native';
 import {fetchNotifications} from '../../../contexts/User';
 import {AuthContext} from '../../../../context';
+import StyleGuide from '../../../assets/style-guide';
+import {scaledSize} from '../../../assets/style-guide/typography';
 
 const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
   navigation,
@@ -14,6 +23,7 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
   const isFocused = useIsFocused();
   const {signOut} = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   const logOutUser = useCallback(async () => {
     await signOut();
@@ -29,9 +39,25 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
           return;
         }
         setNotifications(response);
+        setPageLoading(false);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      setPageLoading(false);
+    }
   }, [logOutUser, isFocused]);
+
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
+
   return (
     <Layout>
       <View style={styles.main}>
@@ -46,6 +72,11 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
             created_at={item.created_at}
           />
         ))}
+        {notifications.length === 0 && (
+          <Text style={styles.headerText}>
+            You do not have any notifications
+          </Text>
+        )}
       </View>
     </Layout>
   );
@@ -53,6 +84,16 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
 
 const styles = StyleSheet.create({
   main: {flex: 1},
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+    color: StyleGuide.Colors.shades.magenta[50],
+    fontSize: scaledSize(18),
+  },
 });
 
 export default Notifications;

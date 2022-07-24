@@ -24,6 +24,8 @@ const Badges: React.FC<ScreenProps<'Badges'>> = ({navigation, route}) => {
   const {achievements, medals} = route.params;
   const actionSheetRef = createRef<ActionSheet>();
 
+  console.log();
+
   return (
     <Layout>
       <View style={styles.main}>
@@ -44,6 +46,11 @@ const Badges: React.FC<ScreenProps<'Badges'>> = ({navigation, route}) => {
               </TouchableOpacity>
             ))}
           </View>
+          {achievements.length === 0 && (
+            <Text style={styles.noData}>
+              You have no Achievements at the moment
+            </Text>
+          )}
           <Text style={styles.headerText}>Medals of Honor</Text>
           <View style={styles.listWrapper}>
             {medals.map((item: BadgeTypes, index: number) => (
@@ -59,6 +66,9 @@ const Badges: React.FC<ScreenProps<'Badges'>> = ({navigation, route}) => {
               </TouchableOpacity>
             ))}
           </View>
+          {medals.length === 0 && (
+            <Text style={styles.noData}>You have no Medals at the moment</Text>
+          )}
         </ScrollView>
         <MonieeActionSheet
           onClose={() => {}}
@@ -129,6 +139,12 @@ const styles = StyleSheet.create({
     width: 50,
     marginRight: 5,
     borderRadius: 50,
+  },
+  noData: {
+    flex: 1,
+    alignSelf: 'center',
+    marginVertical: 20,
+    fontFamily: 'NexaRegular',
   },
 });
 

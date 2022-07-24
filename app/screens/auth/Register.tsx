@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, {useState} from 'react';
 import {
   View,
@@ -34,8 +35,8 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
   const userDecoder: Decoder<Partial<User>> = Decoder.object({
     country_code: Decoder.string,
     mobile: Decoder.string.satisfy({
-      predicate: (arg: string) => arg.length >= 9,
-      failureMessage: 'The mobile must be at least 9 digits long',
+      predicate: (arg: string) => arg.length >= 10,
+      failureMessage: 'The mobile must be at least 10 digits long',
     }),
   });
   const baseUser: LoginPayload = {
@@ -121,9 +122,9 @@ const Register: React.FC<ScreenProps<'Register'>> = ({navigation}) => {
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         <View style={{flex: 1}}>
           <Header title="Let’s begin 🚀" goBack={navigation.goBack}>
-            <Text style={styles.subHeader}>
-              Welcome to the Moniee App, your pathway to{'\n'}experiencing
-              freedom. Lets get started!
+            <Text style={[styles.subHeader, {width: '95%'}]}>
+              Welcome to the Moniee App, your pathway to experiencing freedom.
+              Lets get started!
             </Text>
           </Header>
           <View style={styles.bigInputBox}>
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
   },
   extraStyle: {
     textAlign: 'center',
-    color: StyleGuide.Colors.shades.grey[1400],
+    color: StyleGuide.Colors.primary,
     fontSize: StyleGuide.Typography[10],
   },
   createText: {

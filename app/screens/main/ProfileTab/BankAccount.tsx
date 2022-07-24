@@ -1,6 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, Platform, Image, Text} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Platform,
+  Image,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import {SvgUri} from 'react-native-svg';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
@@ -24,6 +31,7 @@ type DisbursementProps = {
 const BankAccount: React.FC<ScreenProps<'BankAccount'>> = ({navigation}) => {
   const [bankObj, setBankObj] = useState<DisbursementProps>();
   const [withdrawals, setWithdrawals] = useState([]);
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   useEffect(() => {
     try {
@@ -32,9 +40,24 @@ const BankAccount: React.FC<ScreenProps<'BankAccount'>> = ({navigation}) => {
         setBankObj(response.disbursement);
         const withdrawalResponse = await fetchBankWithdrawals();
         setWithdrawals(withdrawalResponse);
+        setPageLoading(false);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      setPageLoading(false);
+    }
   }, []);
+
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
 
   return (
     <Layout>
@@ -138,6 +161,11 @@ const styles = StyleSheet.create({
     color: StyleGuide.Colors.shades.grey[100],
     fontFamily: 'NexaRegular',
     margin: 5,
+  },
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

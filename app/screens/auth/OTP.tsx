@@ -107,7 +107,7 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({navigation, route}) => {
           <OTPInputView
             style={styles.otpView}
             code={defaultOtp}
-            pinCount={4}
+            pinCount={5}
             keyboardType={'number-pad'}
             // autoFocusOnLoad
             codeInputFieldStyle={
@@ -171,7 +171,7 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({navigation, route}) => {
       <View style={styles.subtext}>
         <MonieeButton
           title="Submit"
-          disabled={defaultOtp.length < 4}
+          disabled={defaultOtp.length < 5}
           onPress={() => {
             handleVerifyOtp();
           }}

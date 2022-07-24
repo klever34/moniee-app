@@ -62,6 +62,7 @@ import TierList from './app/screens/main/ProfileTab/Account.tsx/TierThree/TierLi
 import BankStatement from './app/screens/main/ProfileTab/Account.tsx/TierThree/BankStatement';
 import Badges from './app/screens/main/ProfileTab/Badges';
 import {initializeFB} from './app/services/notifications';
+import TransactionHistory from './app/screens/main/MoneyTab/TransactionHistory';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -103,6 +104,7 @@ export type RootStackParamList = {
   TierList: undefined;
   BankStatement: undefined;
   Badges: {achievements: any; medals: any};
+  TransactionHistory: undefined;
 };
 
 export type MainNavParamList = {
@@ -315,6 +317,10 @@ const App: React.FC<RootStackParamList> = () => {
       <ParentStack.Screen name="TierList" component={TierList} />
       <ParentStack.Screen name="BankStatement" component={BankStatement} />
       <ParentStack.Screen name="Badges" component={Badges} />
+      <ParentStack.Screen
+        name="TransactionHistory"
+        component={TransactionHistory}
+      />
       <ParentStack.Screen
         name="ResidentialAddress"
         component={ResidentialAddress}

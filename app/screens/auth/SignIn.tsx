@@ -35,7 +35,7 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
     country_code: Decoder.string,
     mobile: Decoder.string.satisfy({
       predicate: (arg: string) => arg.length >= 10,
-      failureMessage: 'The mobile must be at least 9 digits long',
+      failureMessage: 'The mobile must be at least 10 digits long',
     }),
   });
   const baseUser: LoginPayload = {
@@ -50,8 +50,12 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
   const [countryCode, setCountryCode] = useState<CountryCode>('NG');
 
   const handleSignIn = async () => {
+    let cleanMobile = user.mobile;
+    if (user.mobile.startsWith('0')) {
+      cleanMobile = user.mobile.substring(1);
+    }
     navigation.push('SignInVerification', {
-      mobile: `${user.country_code}${user.mobile}`,
+      mobile: `${user.country_code}${cleanMobile}`,
     });
   };
 
@@ -127,7 +131,7 @@ const SignIn: React.FC<ScreenProps<'SignIn'>> = ({navigation}) => {
                   withCallingCode: true,
                   withEmoji: true,
                   onSelect,
-                  preferredCountries: ['NG'],
+                  countryCodes: ['NG'],
                   onClose,
                 }}
                 visible={showPicker}
@@ -261,7 +265,7 @@ const styles = StyleSheet.create({
   },
   extraStyle: {
     textAlign: 'center',
-    color: StyleGuide.Colors.shades.grey[1400],
+    color: StyleGuide.Colors.primary,
     fontSize: StyleGuide.Typography[10],
   },
   createText: {

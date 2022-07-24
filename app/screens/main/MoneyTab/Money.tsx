@@ -14,6 +14,7 @@ import {
   TextInput,
   Alert,
   AppState,
+  ActivityIndicator,
 } from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
@@ -33,6 +34,7 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const [balance, setBalance] = useState<number>();
   const {signOut} = useContext(AuthContext);
   const isFocused = useIsFocused();
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   const formatAsNumber = (arg: number): string => formatNumber()(arg);
 
@@ -95,9 +97,10 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
     try {
       (async () => {
         await getUserBalance();
+        setPageLoading(false);
       })();
     } catch (error: any) {
-      console.log(error);
+      setPageLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logOutUser, isFocused, appStateVisible]);
@@ -116,8 +119,19 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
     }
   };
 
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
+
   return (
-    //@ts-ignore
     <View style={[styles.main]}>
       <View style={styles.topBar}>
         <Icon
@@ -138,6 +152,7 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
           name="access-time"
           size={24}
           color={StyleGuide.Colors.white}
+          onPress={() => navigation.push('TransactionHistory')}
         />
       </View>
       <View style={[styles.ctaButtons, styles.moneyBox]}>
@@ -257,6 +272,11 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 40,
     marginBottom: 30,
+  },
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

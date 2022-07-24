@@ -6,7 +6,15 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import {View, Text, StyleSheet, Platform, TextInput, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
@@ -26,6 +34,7 @@ const Withdraw: React.FC<ScreenProps<'Withdraw'>> = ({navigation}) => {
   const {signOut} = useContext(AuthContext);
   const transactionPinSheetRef = createRef<ActionSheet>();
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   const formatAsNumber = (arg: number): string => formatNumber()(arg);
 
@@ -39,12 +48,16 @@ const Withdraw: React.FC<ScreenProps<'Withdraw'>> = ({navigation}) => {
         const response = await fetchWalletBalance();
         if (response === 401) {
           Alert.alert('Info', 'Your session has timed out, please login again');
+          setPageLoading(false);
           await logOutUser();
           return;
         }
         setBalance(response.data.balance);
+        setPageLoading(false);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      setPageLoading(false);
+    }
   }, [logOutUser]);
 
   const getKeyString = (numericKey: any) => {
@@ -85,8 +98,19 @@ const Withdraw: React.FC<ScreenProps<'Withdraw'>> = ({navigation}) => {
     }
   };
 
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
+
   return (
-    //@ts-ignore
     <View style={[styles.main]}>
       <TransactionPin
         actionSheetRef={transactionPinSheetRef}
@@ -213,6 +237,11 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 40,
     marginBottom: 30,
+  },
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

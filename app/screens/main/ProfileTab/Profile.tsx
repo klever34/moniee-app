@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
@@ -48,6 +49,7 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
   const [achievements, setAchievements] = useState<BadgeTypes[]>();
   const [medals, setMedals] = useState<BadgeTypes[]>();
   const {signOut} = useContext(AuthContext);
+  const [pageLoading, setPageLoading] = useState<boolean>(true);
 
   const logOutUser = useCallback(async () => {
     await signOut();
@@ -91,9 +93,24 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
         );
 
         setMedals(userMedals);
+        setPageLoading(false);
       })();
-    } catch (error: any) {}
+    } catch (error: any) {
+      setPageLoading(false);
+    }
   }, [isFocused]);
+
+  if (pageLoading) {
+    return (
+      <View style={styles.isLoading}>
+        <ActivityIndicator
+          size={'large'}
+          color={StyleGuide.Colors.primary}
+          style={{marginBottom: StyleGuide.Typography[18]}}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.main]}>
@@ -172,6 +189,11 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
                   </View>
                 ))}
               </ScrollView>
+              {achievements.length > 0 && (
+                <Text style={styles.accountName}>
+                  You have no Achievements at the moment
+                </Text>
+              )}
             </View>
           )}
           <MenuIcon
@@ -204,6 +226,17 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
             image={require('../../../assets/images/support.png')}
             onPress={() => navigation.push('HelpAndSupport')}
           />
+          <TouchableOpacity
+            onPress={() => logOutUser()}
+            style={styles.logoutStyle}>
+            <Icon
+              type="material-icons"
+              name="logout"
+              size={18}
+              color={'#9F56D4'}
+            />
+            <Text style={[styles.headerText, styles.extra]}>Log Out</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -316,6 +349,20 @@ const styles = StyleSheet.create({
   avatarBox: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  isLoading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutStyle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 15,
+  },
+  extra: {
+    marginTop: Platform.OS === 'ios' ? 5 : 0,
+    paddingHorizontal: 10,
   },
 });
 

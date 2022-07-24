@@ -62,6 +62,8 @@ const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({
   useEffect(() => {
     if (defaultPin.length === 4) {
       changeUserPin();
+    } else {
+      // return;
     }
   }, [changeUserPin, defaultPin]);
 
