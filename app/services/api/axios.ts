@@ -13,6 +13,7 @@ export const setAxiosToken = async () => {
     API = axios.create({
       baseURL: 'https://moniee-stag.herokuapp.com/api/v1',
       headers: {Authorization: `Bearer ${storedUserState.token}`},
+      timeout: 60000,
     });
   }
 };

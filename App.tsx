@@ -1,6 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useMemo, useState} from 'react';
-import {NavigationContainer, DefaultTheme} from '@react-navigation/native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {
+  NavigationContainer,
+  DefaultTheme,
+  useNavigationContainerRef,
+} from '@react-navigation/native';
 import {
   createStackNavigator,
   StackNavigationProp,
@@ -63,6 +67,26 @@ import BankStatement from './app/screens/main/ProfileTab/Account.tsx/TierThree/B
 import Badges from './app/screens/main/ProfileTab/Badges';
 import {initializeFB} from './app/services/notifications';
 import TransactionHistory from './app/screens/main/MoneyTab/TransactionHistory';
+// import {apiLogOut} from './app/contexts/User';
+import appsFlyer from 'react-native-appsflyer';
+import {MonieeLogEvent} from './app/services/apps-flyer';
+
+appsFlyer.initSdk(
+  {
+    devKey: 'GuAjoPscg85jqMujtfL3vQ',
+    isDebug: false,
+    // appId: '41*****44',
+    onInstallConversionDataListener: true, //Optional
+    onDeepLinkListener: true, //Optional
+    // timeToWaitForATTUserAuthorization: 10, //for iOS 14.5
+  },
+  result => {
+    console.log(result);
+  },
+  error => {
+    console.error(error);
+  },
+);
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -93,7 +117,7 @@ export type RootStackParamList = {
   ChangeLog: undefined;
   BankAccount: undefined;
   EditProfile: {userObj?: any};
-  AccountUpgrade: undefined;
+  AccountUpgrade: {tier: number};
   SecurityScreen: undefined;
   ChangePin: undefined;
   SetNewPin: {old_pin: string};
@@ -137,6 +161,8 @@ const App: React.FC<RootStackParamList> = () => {
   const [splash, setSplash] = React.useState(true);
   const [userToken, setUserToken] = useState<null | string>(null);
   const [chosenTheme, setChosenTheme] = useState(0);
+  const navigationRef = useNavigationContainerRef();
+  const routeNameRef = useRef();
 
   useEffect(() => {
     (async () => {
@@ -479,7 +505,24 @@ const App: React.FC<RootStackParamList> = () => {
   return (
     <AuthContext.Provider value={authContext}>
       <MenuProvider>
-        <NavigationContainer theme={appTheme[chosenTheme]}>
+        <NavigationContainer
+          ref={navigationRef}
+          onReady={() => {
+            //@ts-ignore
+            routeNameRef.current = navigationRef.getCurrentRoute().name;
+          }}
+          onStateChange={async () => {
+            const previousRouteName = routeNameRef.current;
+            //@ts-ignore
+            const currentRouteName = navigationRef?.getCurrentRoute().name;
+
+            if (previousRouteName !== currentRouteName) {
+              MonieeLogEvent(currentRouteName, {});
+            }
+            //@ts-ignore
+            routeNameRef.current = currentRouteName;
+          }}
+          theme={appTheme[chosenTheme]}>
           <ToastProvider
             placement="top"
             duration={5000}

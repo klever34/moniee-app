@@ -37,6 +37,7 @@ import {APIUserOBJ} from '../ProfileTab/Profile';
 import Avatar from '../../../components/Avatar';
 import Clipboard from '@react-native-community/clipboard';
 import formatNumber from 'format-number';
+import {MonieeLogEvent} from '../../../services/apps-flyer';
 
 type CollectionProps = {
   account_name: string;
@@ -144,7 +145,7 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
                 name="qr-code-scanner"
                 size={24}
                 color={StyleGuide.Colors.black}
-                onPress={() => navigation.push('QRCodeScreen')}
+                onPress={() => {}}
               />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconBg}>
@@ -168,8 +169,10 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
               title="Fund Wallet"
               onPress={() => {
                 accountDetailsSheetRef?.current?.show();
+                MonieeLogEvent('Fund Wallet Modal', {
+                  user: userObj?.mobile,
+                });
               }}
-              disabled={!balance}
             />
             <MonieeButton
               title="Withdraw"

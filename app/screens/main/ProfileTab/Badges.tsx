@@ -24,8 +24,6 @@ const Badges: React.FC<ScreenProps<'Badges'>> = ({navigation, route}) => {
   const {achievements, medals} = route.params;
   const actionSheetRef = createRef<ActionSheet>();
 
-  console.log();
-
   return (
     <Layout>
       <View style={styles.main}>

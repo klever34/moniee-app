@@ -91,7 +91,6 @@ type WithdrawalPayload = {
 
 type fcmTokenPayload = {
   token: string;
-  platform?: string;
 };
 
 const forgeUserData = (apiResponse: any) => {
@@ -293,5 +292,25 @@ export const updateUserBankStatement = async (statement: FormData) => {
 };
 
 export const saveFcmToken = async (payload: fcmTokenPayload): Promise<void> => {
-  await API.post('/fcm/token', payload);
+  await API.post('user/pn-token', payload);
+};
+
+export const acceptRequest = async (payload: {
+  id: number;
+  pin: string;
+}): Promise<any> => {
+  const res = await API.post(`request/${payload.id}/accept`, {
+    pin: payload.pin,
+  });
+  return res.data;
+};
+
+export const declineRequest = async (id: number): Promise<any> => {
+  const res = await API.post(`request/${id}/decline`);
+  return res.data;
+};
+
+export const apiLogOut = async () => {
+  setAxiosToken();
+  await API.post('auth/logout');
 };

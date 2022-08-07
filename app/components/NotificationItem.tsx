@@ -1,17 +1,24 @@
 /* eslint-disable react-native/no-inline-styles */
-import React from 'react';
-import {View, StyleSheet, Image, Text, Platform} from 'react-native';
+import React, {useState} from 'react';
+import {View, StyleSheet, Text, Platform, TouchableOpacity} from 'react-native';
 import StyleGuide from '../assets/style-guide';
 import {scaledSize} from '../assets/style-guide/typography';
 import MonieeButton from './MonieeButton';
 import moment from 'moment';
+import {declineRequest} from '../contexts/User';
+import Icon from './Icon';
+import {useToast} from 'react-native-toast-notifications';
 
 type NotificationProps = {
   amount: number;
-  destination: string;
-  reason: string;
+  destination?: string;
+  reason?: string;
   type: string;
   created_at: string;
+  id: number;
+  source?: string;
+  refresh: (val: boolean) => void;
+  openModal: (val: boolean) => void;
 };
 
 const NotificationItem: React.FC<NotificationProps> = ({
@@ -20,7 +27,15 @@ const NotificationItem: React.FC<NotificationProps> = ({
   reason,
   type,
   created_at,
+  id,
+  source,
+  refresh,
+  openModal,
 }) => {
+  // const [acceptLoader, setAcceptLoader] = useState(false);
+  const [declineLoader, setDeclineLoader] = useState(false);
+  const toast = useToast();
+
   const dateConverter = (myDate: string) => {
     var fromNow = moment(myDate).fromNow();
     return moment(myDate).calendar(null, {
@@ -34,6 +49,7 @@ const NotificationItem: React.FC<NotificationProps> = ({
       },
     });
   };
+
   const getNotificationType = () => {
     switch (type) {
       case 'request-sent':
@@ -79,7 +95,7 @@ const NotificationItem: React.FC<NotificationProps> = ({
       case 'request':
         return (
           <Text style={styles.body}>
-            <Text style={styles.boldText}>{destination}</Text> has requested
+            <Text style={styles.boldText}>{source}</Text> has requested
             <Text style={styles.boldText}> ₦{amount}</Text> for
             <Text style={styles.boldText}> {reason}</Text>
           </Text>
@@ -101,12 +117,82 @@ const NotificationItem: React.FC<NotificationProps> = ({
     }
   };
 
+  // const accept = async (pin: string) => {
+  //   setAcceptLoader(true);
+  //   try {
+  //     const res = await acceptRequest({id, pin});
+  //     setAcceptLoader(false);
+  //     if (res.status) {
+  //       toast.show(res.message, {
+  //         type: 'custom_toast',
+  //         animationDuration: 100,
+  //         data: {
+  //           title: 'Info',
+  //         },
+  //       });
+  //     } else {
+  //       toast.show('Could not process request', {
+  //         type: 'custom_toast',
+  //         animationDuration: 100,
+  //         data: {
+  //           title: 'Info',
+  //         },
+  //       });
+  //     }
+
+  //     refresh(true);
+  //   } catch (error: any) {
+  //     console.log(error.response);
+
+  //     setAcceptLoader(false);
+  //   }
+  // };
+  // const onHandlePinDone = async (pin: string) => {
+  //   await accept(pin);
+  // };
+
+  const decline = async () => {
+    setDeclineLoader(true);
+    try {
+      const res = await declineRequest(id);
+      setDeclineLoader(false);
+      if (res.status) {
+        toast.show(res.message, {
+          type: 'custom_toast',
+          animationDuration: 100,
+          data: {
+            title: 'Info',
+          },
+        });
+      } else {
+        toast.show('Could not process request', {
+          type: 'custom_toast',
+          animationDuration: 100,
+          data: {
+            title: 'Info',
+          },
+        });
+      }
+      refresh(true);
+    } catch (error) {
+      setDeclineLoader(false);
+    }
+  };
+
   return (
     <View style={styles.cardItem}>
-      <Image
+      {/* <Image
         source={require('../assets/images/avatar.png')}
         style={styles.avatarImage}
-      />
+      /> */}
+      <TouchableOpacity style={styles.iconBg}>
+        <Icon
+          type="material-icons"
+          name="notifications-none"
+          size={24}
+          color={StyleGuide.Colors.white}
+        />
+      </TouchableOpacity>
       <View style={styles.rightItem}>
         <View style={styles.topText}>
           <Text style={styles.notyType}>{getNotificationType()}</Text>
@@ -121,14 +207,21 @@ const NotificationItem: React.FC<NotificationProps> = ({
                 width: '40%',
                 backgroundColor: StyleGuide.Colors.shades.grey[600],
               }}
-              onPress={() => {}}
+              onPress={() => {
+                decline();
+              }}
               title="Getat!"
               textColor={StyleGuide.Colors.shades.magenta[25]}
+              isLoading={declineLoader}
             />
             <MonieeButton
               customStyle={{width: '40%'}}
-              onPress={() => {}}
+              onPress={() => {
+                // transactionPinSheetRef?.current?.show();
+                openModal(true);
+              }}
               title="Accept"
+              // isLoading={acceptLoader}
             />
           </View>
         )}
@@ -168,7 +261,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 5,
+    marginTop: 8,
   },
   notyDate: {
     fontFamily: 'NexaRegular',
@@ -183,6 +276,12 @@ const styles = StyleSheet.create({
   boldText: {
     fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     fontWeight: Platform.OS === 'ios' ? 'bold' : 'normal',
+  },
+  iconBg: {
+    backgroundColor: StyleGuide.Colors.primary,
+    padding: 15,
+    borderRadius: 50,
+    marginRight: 10,
   },
 });
 

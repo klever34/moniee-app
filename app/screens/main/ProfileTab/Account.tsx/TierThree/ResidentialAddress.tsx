@@ -37,6 +37,7 @@ import {
 import {Decoder} from 'elm-decoders';
 import {getFieldValidationError, scaleHeight} from '../../../../../utils';
 import {useToast} from 'react-native-toast-notifications';
+import {MonieeLogEvent} from '../../../../../services/apps-flyer';
 
 const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
   navigation,
@@ -151,6 +152,7 @@ const ResidentialAddress: React.FC<ScreenProps<'ResidentialAddress'>> = ({
       setLoading(false);
       await getUserAddress();
       actionSheetRef?.current?.hide();
+      MonieeLogEvent('Residential Address updated', {});
       toast.show(response.data.message, {
         type: 'custom_toast',
         animationDuration: 150,

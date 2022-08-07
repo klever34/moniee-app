@@ -20,8 +20,10 @@ export const initializeFB = () => {
   const getToken = async () => {
     try {
       const token = await firebase.messaging().getToken();
-      await saveFcmToken({token, platform: Platform.OS});
-    } catch (error) {}
+      console.log({token});
+
+      await saveFcmToken({token});
+    } catch (error: any) {}
   };
 
   const registerForRemoteMessages = () => {
@@ -48,6 +50,8 @@ export const initializeFB = () => {
 
   const onMessage = () => {
     firebase.messaging().onMessage(response => {
+      console.log(response);
+
       showNotification(response?.notification);
     });
   };

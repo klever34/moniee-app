@@ -15,6 +15,7 @@ import {
   Alert,
   AppState,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import {ScreenProps} from '../../../../App';
 import StyleGuide from '../../../assets/style-guide';
@@ -22,12 +23,13 @@ import {scaledSize} from '../../../assets/style-guide/typography';
 import Icon from '../../../components/Icon';
 import Keypad from '../../../components/Keypad';
 import MonieeButton from '../../../components/MonieeButton';
-import {fetchWalletBalance} from '../../../contexts/User';
+import {fetchUserInfo, fetchWalletBalance} from '../../../contexts/User';
 import {scaleHeight} from '../../../utils';
 import formatNumber from 'format-number';
 import {AuthContext} from '../../../../context';
 import {useIsFocused} from '@react-navigation/native';
 import BackgroundFetch from 'react-native-background-fetch';
+import {APIUserOBJ} from '../ProfileTab/Profile';
 
 const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const [moneyValue, setMoneyValue] = useState<string>('');
@@ -35,6 +37,7 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const {signOut} = useContext(AuthContext);
   const isFocused = useIsFocused();
   const [pageLoading, setPageLoading] = useState<boolean>(true);
+  const [userObj, setUserObj] = useState<APIUserOBJ>();
 
   const formatAsNumber = (arg: number): string => formatNumber()(arg);
 
@@ -83,6 +86,16 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
     };
   }, []);
 
+  useEffect(() => {
+    try {
+      (async () => {
+        const userInfo = await fetchUserInfo();
+
+        setUserObj(userInfo);
+      })();
+    } catch (error: any) {}
+  }, [isFocused]);
+
   const getUserBalance = async () => {
     const response = await fetchWalletBalance();
     if (response === 401) {
@@ -122,24 +135,35 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   if (pageLoading) {
     return (
       <View style={styles.isLoading}>
-        <ActivityIndicator
-          size={'large'}
-          color={StyleGuide.Colors.primary}
-          style={{marginBottom: StyleGuide.Typography[18]}}
-        />
+        <ActivityIndicator size={'large'} color={StyleGuide.Colors.white} />
       </View>
     );
   }
 
   return (
     <View style={[styles.main]}>
+      {userObj?.tier! < 2 && (
+        <TouchableOpacity
+          onPress={() =>
+            navigation.push('AccountUpgrade', {
+              tier: userObj?.tier!,
+            })
+          }
+          style={styles.redBanner}>
+          <Text style={styles.redBannerTitle}>Attention Required!</Text>
+          <Text style={styles.redBannerSubTitle}>
+            Complete your profile to remove transaction{'\n'}limits and upgrade
+            your account
+          </Text>
+        </TouchableOpacity>
+      )}
       <View style={styles.topBar}>
         <Icon
           type="material-icons"
           name="qr-code-scanner"
           size={24}
           color={StyleGuide.Colors.white}
-          onPress={() => navigation.push('QRCodeScreen')}
+          onPress={() => {}}
         />
         <View style={styles.walletBalance}>
           <Text style={styles.subText}>Wallet Balance</Text>
@@ -219,6 +243,7 @@ const styles = StyleSheet.create({
   main: {
     flex: 1,
     padding: 20,
+    paddingBottom: 5,
     paddingTop: Platform.OS === 'ios' ? 40 : 10,
     backgroundColor: StyleGuide.Colors.shades.magenta[50],
   },
@@ -277,6 +302,23 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: StyleGuide.Colors.primary,
+  },
+  redBanner: {
+    backgroundColor: StyleGuide.Colors.shades.red[25],
+    padding: 10,
+    marginVertical: 5,
+  },
+  redBannerTitle: {
+    color: StyleGuide.Colors.white,
+    fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
+  },
+  redBannerSubTitle: {
+    color: StyleGuide.Colors.white,
+    fontFamily: 'NexaRegular',
+    fontSize: scaledSize(10),
+    marginTop: 10,
+    lineHeight: 15,
   },
 });
 

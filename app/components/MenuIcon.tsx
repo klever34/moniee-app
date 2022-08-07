@@ -18,6 +18,7 @@ type MenuIconProps = {
   image?: any;
   onPress?: () => void;
   customIcon?: any;
+  disable?: boolean;
 };
 
 const MenuIcon: React.FC<MenuIconProps> = ({
@@ -26,8 +27,12 @@ const MenuIcon: React.FC<MenuIconProps> = ({
   onPress,
   description,
   customIcon,
+  disable = false,
 }) => (
-  <TouchableOpacity style={styles.menuBox} onPress={onPress}>
+  <TouchableOpacity
+    disabled={disable}
+    style={[styles.menuBox, {opacity: disable ? 0.4 : 1}]}
+    onPress={onPress}>
     <View style={[styles.starBox]}>
       <Image source={image} style={styles.menuIcon} />
       <View>

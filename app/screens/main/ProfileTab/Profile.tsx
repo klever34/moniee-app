@@ -72,7 +72,6 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
     try {
       (async () => {
         const userInfo = await fetchUserInfo();
-
         setUserObj(userInfo);
       })();
     } catch (error: any) {}
@@ -115,14 +114,20 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
   return (
     <View style={[styles.main]}>
       <ScrollView style={[styles.main]}>
-        {userObj?.tier === 1 && (
-          <View style={styles.redBanner}>
+        {userObj?.tier! < 2 && (
+          <TouchableOpacity
+            onPress={() =>
+              navigation.push('AccountUpgrade', {
+                tier: userObj?.tier!,
+              })
+            }
+            style={styles.redBanner}>
             <Text style={styles.redBannerTitle}>Attention Required!</Text>
             <Text style={styles.redBannerSubTitle}>
               Complete your profile to remove transaction{'\n'}limits and
               upgrade your account
             </Text>
-          </View>
+          </TouchableOpacity>
         )}
         <View style={styles.profileContainer}>
           <View style={styles.smallProfileContainer}>
@@ -204,7 +209,9 @@ const Profile: React.FC<ScreenProps<'Profile'>> = ({navigation}) => {
           <MenuIcon
             title="Account Upgrade"
             image={require('../../../assets/images/folder.png')}
-            onPress={() => navigation.push('AccountUpgrade')}
+            onPress={() =>
+              navigation.push('AccountUpgrade', {tier: userObj?.tier!})
+            }
           />
           <MenuIcon
             title="Badges"

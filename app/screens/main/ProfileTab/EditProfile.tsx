@@ -19,6 +19,7 @@ import Layout from '../../../components/Layout';
 import MonieeButton from '../../../components/MonieeButton';
 import Subheader from '../../../components/Subheader';
 import {updateUserEmail} from '../../../contexts/User';
+import {MonieeLogEvent} from '../../../services/apps-flyer';
 
 const EditProfile: React.FC<ScreenProps<'EditProfile'>> = ({
   navigation,
@@ -47,6 +48,7 @@ const EditProfile: React.FC<ScreenProps<'EditProfile'>> = ({
         await logOutUser();
         return;
       }
+      MonieeLogEvent('Send Money Successful', {user: userObj?.mobile});
       Alert.alert('Success', res.data.message);
     } catch (error) {
       setIsLoading(false);

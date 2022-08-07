@@ -39,6 +39,8 @@ target 'moniee' do
 
   pod 'RNSVG', :path => '../node_modules/react-native-svg'
 
+  pod 'react-native-appsflyer', :path => '../node_modules/react-native-appsflyer'
+
   target 'monieeTests' do
     inherit! :complete
     # Pods for testing

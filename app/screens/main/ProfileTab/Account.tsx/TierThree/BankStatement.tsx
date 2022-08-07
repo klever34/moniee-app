@@ -27,6 +27,7 @@ import {
   updateUserBankStatement,
 } from '../../../../../contexts/User';
 import {useToast} from 'react-native-toast-notifications';
+import {MonieeLogEvent} from '../../../../../services/apps-flyer';
 
 const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
   navigation,
@@ -70,9 +71,7 @@ const BankStatement: React.FC<ScreenProps<'BankStatement'>> = ({
       });
       const response = await updateUserBankStatement(newFile);
       setLoading(false);
-      // navigation.replace('VerificationStatus', {
-      //   idStatus: 'failed',
-      // });
+      MonieeLogEvent('Bank Statement Uploaded', {});
       toast.show(response.data.message, {
         type: 'custom_toast',
         animationDuration: 150,

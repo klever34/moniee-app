@@ -1,4 +1,10 @@
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {
+  createRef,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
   View,
   StyleSheet,
@@ -12,10 +18,13 @@ import Layout from '../../../components/Layout';
 import NotificationItem from '../../../components/NotificationItem';
 import Subheader from '../../../components/Subheader';
 import {useIsFocused} from '@react-navigation/native';
-import {fetchNotifications} from '../../../contexts/User';
+import {acceptRequest, fetchNotifications} from '../../../contexts/User';
 import {AuthContext} from '../../../../context';
 import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
+import TransactionPin from '../../../components/TransactionPin';
+import ActionSheet from 'react-native-actions-sheet';
+import {useToast} from 'react-native-toast-notifications';
 
 const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
   navigation,
@@ -24,6 +33,10 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
   const {signOut} = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [pageLoading, setPageLoading] = useState<boolean>(true);
+  const [reloadPage, setReload] = useState<boolean>(false);
+  const transactionPinSheetRef = createRef<ActionSheet>();
+  const toast = useToast();
+  const [requestId, setRequestId] = useState<number>();
 
   const logOutUser = useCallback(async () => {
     await signOut();
@@ -44,7 +57,36 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
     } catch (error: any) {
       setPageLoading(false);
     }
-  }, [logOutUser, isFocused]);
+  }, [logOutUser, isFocused, reloadPage]);
+
+  const onHandlePinDone = async (pin: string) => {
+    if (pin.length === 4) {
+      transactionPinSheetRef?.current?.hide();
+      try {
+        const res = await acceptRequest({id: requestId!, pin});
+        if (res.status) {
+          toast.show(res.message, {
+            type: 'custom_toast',
+            animationDuration: 100,
+            data: {
+              title: 'Info',
+            },
+          });
+          setReload(!reloadPage);
+        } else {
+          toast.show('Could not process request', {
+            type: 'custom_toast',
+            animationDuration: 100,
+            data: {
+              title: 'Info',
+            },
+          });
+        }
+      } catch (error: any) {
+        console.log(error.response);
+      }
+    }
+  };
 
   if (pageLoading) {
     return (
@@ -70,6 +112,17 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
             reason={item.meta.reason}
             type={item.type}
             created_at={item.created_at}
+            id={item.meta.requestId}
+            source={item.meta.source}
+            refresh={(value: boolean) => setReload(value)}
+            openModal={(value: boolean) => {
+              setRequestId(item.meta.requestId);
+              if (value) {
+                transactionPinSheetRef?.current?.show();
+              } else {
+                transactionPinSheetRef?.current?.hide();
+              }
+            }}
           />
         ))}
         {notifications.length === 0 && (
@@ -77,6 +130,12 @@ const Notifications: React.FC<ScreenProps<'Notifications'>> = ({
             You do not have any notifications
           </Text>
         )}
+      </View>
+      <View style={{flex: 1}}>
+        <TransactionPin
+          actionSheetRef={transactionPinSheetRef}
+          onDone={(pin: string) => onHandlePinDone(pin)}
+        />
       </View>
     </Layout>
   );

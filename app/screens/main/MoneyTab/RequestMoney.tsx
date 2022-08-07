@@ -43,6 +43,7 @@ import {
 import Contacts from 'react-native-contacts';
 import Avatar from '../../../components/Avatar';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import {MonieeLogEvent} from '../../../services/apps-flyer';
 
 const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   navigation,
@@ -77,16 +78,13 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   };
 
   const handleContacts = useCallback(async () => {
-    // const actionSheetBackupRef = contactListSheetRef.current;
     setLoadingContacts(true);
     if (contactList?.length! > 0) {
       setSubContactList(contactList);
       setLoadingContacts(false);
-      // actionSheetBackupRef?.show();
       return;
     }
     try {
-      // actionSheetBackupRef?.show();
       const contacts = await Contacts.getAll();
       const enrichedContacts = contacts.map(item => ({
         displayName: `${item.givenName} ${item.familyName}`,
@@ -94,8 +92,13 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
         givenName: item.givenName,
         phoneNumbers: item.phoneNumbers,
       }));
-      setContactList(enrichedContacts);
-      setSubContactList(enrichedContacts);
+
+      const filteredEnrichedContact = enrichedContacts.filter(
+        item => item.phoneNumbers.length > 0,
+      );
+
+      setContactList(filteredEnrichedContact);
+      setSubContactList(filteredEnrichedContact);
       setLoadingContacts(false);
     } catch (err: any) {
       setLoadingContacts(false);
@@ -170,6 +173,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
     }
     try {
       await sendMoney({recipients, pin});
+      MonieeLogEvent('Send Money Successful', {recipients});
       setLoading(false);
       navigation.replace('PaymentStatus', {
         paymentSuccessStatus: 'send',
@@ -196,16 +200,24 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   const sendRequestMoneyPayload = async () => {
     let recipients = [];
     if (request.phone_number.length > 0) {
+      let cleanMobile = request.phone_number;
+      if (request.phone_number.startsWith('0')) {
+        cleanMobile = '234' + request.phone_number.substring(1);
+      }
       recipients.push({
-        mobile: request.phone_number,
+        mobile: cleanMobile,
         amount: request.amount,
         reason: request.purpose,
       });
     }
     if (selectedContacts.length > 0) {
       selectedContacts.map(function (item: ContactsData) {
+        let cleanMobile = item?.phoneNumbers[0]?.number;
+        if (item?.phoneNumbers[0]?.number.startsWith('0')) {
+          cleanMobile = '234' + item?.phoneNumbers[0]?.number.substring(1);
+        }
         recipients.push({
-          mobile: item.phoneNumbers[0].number,
+          mobile: cleanMobile,
           amount: request.amount,
           reason: request.purpose,
         });
@@ -215,6 +227,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
     setStopLoader(false);
     try {
       await requestMoney({recipients});
+      MonieeLogEvent('Request Money Successful', {recipients});
       setLoading(false);
       navigation.replace('PaymentStatus', {
         paymentSuccessStatus: 'request',
@@ -312,7 +325,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
   const renderItem = ({item}: {item: ContactsData}) => (
     <View style={[styles.contactStyle, {justifyContent: 'space-between'}]}>
       <TouchableOpacity style={styles.contactStyle}>
-        <Avatar name={`${item?.givenName ?? ''} ${item.familyName ?? ''}`} />
+        <Avatar name={`${item?.givenName ?? ''} ${item?.familyName ?? ''}`} />
         <TouchableOpacity
           onPress={() => {
             // contactListSheetRef?.current?.hide();
@@ -320,7 +333,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
           }}>
           <Text style={styles.contactName}>{item?.displayName ?? ''}</Text>
           <Text style={styles.contactMobile}>
-            {(item.phoneNumbers.length > 0 && item?.phoneNumbers[0].number) ??
+            {(item?.phoneNumbers.length > 0 && item?.phoneNumbers[0].number) ??
               'N/A'}
           </Text>
         </TouchableOpacity>
@@ -399,6 +412,7 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
               mode={'primary'}
               onPress={() => {
                 contactListSheetRef?.current?.hide();
+                console.log(selectedContacts);
               }}
               customStyle={{flex: 1, marginBottom: 15, marginLeft: 15}}
             />
@@ -523,12 +537,28 @@ const RequestMoney: React.FC<ScreenProps<'RequestMoney'>> = ({
               </View>
             </View>
             {selectedContacts && selectedContacts?.length! > 0 && (
-              <Text style={styles.errorMsgText}>
-                You have selected {selectedContacts[0]?.displayName}{' '}
-                {selectedContacts?.length! > 1
-                  ? `and ${selectedContacts?.length! - 1} others`
-                  : ''}
-              </Text>
+              <>
+                {/* <Text style={styles.errorMsgText}>
+                  You have selected {selectedContacts[0]?.displayName}{' '}
+                  {selectedContacts?.length! > 1
+                    ? `and ${selectedContacts?.length! - 1} other(s)`
+                    : ''}
+                </Text> */}
+                <Text style={styles.errorMsgText}>You have selected:</Text>
+                <Text>
+                  {selectedContacts.map((item: ContactsData, index: number) => (
+                    <View key={index}>
+                      <Text style={[styles.contactMobile]}>
+                        {item?.displayName ?? ''}
+                        {': '}
+                        {(item.phoneNumbers.length > 0 &&
+                          item?.phoneNumbers[0].number + '\n') ??
+                          'N/A'}
+                      </Text>
+                    </View>
+                  ))}
+                </Text>
+              </>
             )}
             <View style={styles.subtext}>
               <MonieeButton
@@ -679,7 +709,7 @@ const styles = StyleSheet.create({
     fontFamily: 'NexaRegular',
   },
   contactMobile: {
-    color: StyleGuide.Colors.shades.magenta[50],
+    color: StyleGuide.Colors.black,
     fontSize: scaledSize(13),
     fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     marginTop: 7,

@@ -37,6 +37,7 @@ import {
 import {useIsFocused} from '@react-navigation/native';
 import {useImageInput} from '../../../../../utils/camera';
 import {useToast} from 'react-native-toast-notifications';
+import {MonieeLogEvent} from '../../../../../services/apps-flyer';
 
 const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
   const [hasId, setHasId] = useState<boolean>(false);
@@ -139,6 +140,10 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
         photoid_number: idNumber,
         selfie_image: selfieStr,
       });
+      MonieeLogEvent('Successful Tier Two upgrade', {
+        photoid_number: idNumber,
+        photoid_type: selectedOptionType,
+      });
       toast.show(response.data.message, {
         type: 'custom_toast',
         animationDuration: 150,
@@ -147,6 +152,7 @@ const GovtID: React.FC<ScreenProps<'GovtID'>> = ({navigation}) => {
         },
       });
       setLoading(false);
+      navigation.push('Profile');
     } catch (error: any) {
       toast.show('Could not submit ID', {
         type: 'custom_toast',

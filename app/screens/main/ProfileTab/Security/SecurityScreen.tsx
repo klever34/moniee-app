@@ -30,6 +30,7 @@ const SecurityScreen: React.FC<ScreenProps<'SecurityScreen'>> = ({
               color={StyleGuide.Colors.shades.grey[50]}
             />
           }
+          disable={true}
         />
       </View>
     </Layout>

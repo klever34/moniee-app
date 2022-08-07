@@ -1,20 +1,20 @@
 import OTPInputView from '@twotalltotems/react-native-otp-input';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {ActivityIndicator, Alert, StyleSheet, Text, View} from 'react-native';
 import {ScreenProps} from '../../../../../App';
 import StyleGuide from '../../../../assets/style-guide';
 import Keypad from '../../../../components/Keypad';
 import {changeUserPasscode} from '../../../../contexts/User';
 import {useToast} from 'react-native-toast-notifications';
+import {AuthContext} from '../../../../../context';
+import {MonieeLogEvent} from '../../../../services/apps-flyer';
 
-const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({
-  navigation,
-  route,
-}) => {
+const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({route}) => {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [defaultPin, setPIN] = useState<string>('');
   const {old_pin, new_pin} = route.params;
   const toast = useToast();
+  const {signOut} = useContext(AuthContext);
 
   const getKeyString = (numericKey: any) => {
     if (numericKey === 'c') {
@@ -49,15 +49,16 @@ const ConfirmNewPin: React.FC<ScreenProps<'ConfirmNewPin'>> = ({
           title: 'Info',
         },
       });
+      MonieeLogEvent('User Changed Pin', {});
       setLoading(false);
-      navigation.goBack();
+      await signOut();
     } catch (err: any) {
       setLoading(false);
       if (err?.response?.data) {
         Alert.alert('Error', err.response.data.message);
       }
     }
-  }, [defaultPin, navigation, new_pin, old_pin, toast]);
+  }, [defaultPin, new_pin, old_pin, signOut, toast]);
 
   useEffect(() => {
     if (defaultPin.length === 4) {

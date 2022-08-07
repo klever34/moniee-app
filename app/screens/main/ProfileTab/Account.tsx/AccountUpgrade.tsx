@@ -7,7 +7,10 @@ import Subheader from '../../../../components/Subheader';
 
 const AccountUpgrade: React.FC<ScreenProps<'AccountUpgrade'>> = ({
   navigation,
+  route,
 }) => {
+  const {tier} = route.params;
+
   return (
     <Layout>
       <View style={styles.main}>
@@ -19,6 +22,7 @@ const AccountUpgrade: React.FC<ScreenProps<'AccountUpgrade'>> = ({
           onPress={() => navigation.push('GovtID')}
         />
         <MenuIcon
+          disable={tier < 2}
           title="Tier 3"
           description="Residential Address, Bank Statement"
           image={require('../../../../assets/images/crown.png')}

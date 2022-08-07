@@ -66,8 +66,8 @@ const PaymentStatus: React.FC<ScreenProps<'PaymentStatus'>> = ({
           </Text>
           <Text style={subtitleColor}>
             {paymentSuccessStatus === 'request'
-              ? `Your request for ${formatAsNumber(amount)} has been sent`
-              : `Your request to send ${formatAsNumber(
+              ? `Your request for ₦${formatAsNumber(amount)} has been sent`
+              : `Your request to send ₦${formatAsNumber(
                   amount,
                 )} has been received`}
           </Text>
