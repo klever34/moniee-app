@@ -20,8 +20,6 @@ export const initializeFB = () => {
   const getToken = async () => {
     try {
       const token = await firebase.messaging().getToken();
-      console.log({token});
-
       await saveFcmToken({token});
     } catch (error: any) {}
   };
