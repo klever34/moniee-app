@@ -99,7 +99,7 @@ const OTP: React.FC<ScreenProps<'OTP'>> = ({navigation, route}) => {
       <View style={styles.main}>
         <Header title="Verification 🛡" goBack={navigation.goBack}>
           <Text style={styles.subHeader}>
-            Please input the four digit code that was sent{'\n'}to your phone
+            Please input the five digit code that was sent{'\n'}to your phone
             number below
           </Text>
         </Header>

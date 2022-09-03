@@ -16,6 +16,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import ActionSheet from 'react-native-actions-sheet';
 import {ScreenProps} from '../../../../App';
@@ -23,7 +24,9 @@ import StyleGuide from '../../../assets/style-guide';
 import {scaledSize} from '../../../assets/style-guide/typography';
 import Icon from '../../../components/Icon';
 import MonieeButton from '../../../components/MonieeButton';
-// import TransactionItem from '../../../components/TransactionItem';
+import TransactionItem, {
+  TransactionItemsProps,
+} from '../../../components/TransactionItem';
 import {useToast} from 'react-native-toast-notifications';
 import {
   fetchRecentTransactions,
@@ -38,11 +41,26 @@ import Avatar from '../../../components/Avatar';
 import Clipboard from '@react-native-community/clipboard';
 import formatNumber from 'format-number';
 import {MonieeLogEvent} from '../../../services/apps-flyer';
+import {scaleHeight} from '../../../utils';
 
 type CollectionProps = {
   account_name: string;
   account_number: string;
 };
+
+export type Transaction = {
+  amount: string;
+  created_at: string;
+  description: string;
+  from: any;
+  id: number;
+  meta: any;
+  status: string;
+  to: any;
+  type: string;
+  updated_at: string;
+  user_id: number;
+}[];
 
 const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
   const accountDetailsSheetRef = createRef<ActionSheet>();
@@ -53,7 +71,7 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
   const isFocused = useIsFocused();
   const [bankObj, setBankObj] = useState<CollectionProps>();
   const [pageLoading, setPageLoading] = useState<boolean>(true);
-
+  const [transactions, setTransx] = useState<Transaction>([]);
   const formatAsNumber = (arg: number): string => formatNumber()(arg);
 
   useEffect(() => {
@@ -73,8 +91,9 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
     try {
       (async () => {
         const userInfo = await fetchUserInfo();
-        await fetchRecentTransactions();
         setUserObj(userInfo);
+        const transx = await fetchRecentTransactions();
+        setTransx(transx.transactions);
       })();
     } catch (error: any) {}
   }, [isFocused]);
@@ -96,6 +115,10 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
       setPageLoading(false);
     }
   }, [logOutUser, isFocused]);
+
+  const renderItem = ({item}: {item: TransactionItemsProps}) => (
+    <TransactionItem {...item} />
+  );
 
   if (pageLoading) {
     return (
@@ -209,36 +232,51 @@ const Dashboard: React.FC<ScreenProps<'Dashboard'>> = ({navigation}) => {
           <Text style={[styles.headerText, {padding: 20}]}>
             Recent Transactions
           </Text>
-          <View style={styles.emptyTranxBox}>
-            <Image
-              source={require('../../../assets/images/note.png')}
-              style={styles.avatarImage}
-            />
-            <Text
-              style={[
-                styles.headerText,
-                {color: StyleGuide.Colors.shades.grey[25]},
-              ]}>
-              No recent Transaction
-            </Text>
-            <Text
-              style={[
-                styles.greetingsText,
-                {
-                  textAlign: 'center',
-                  paddingBottom: 20,
-                  fontSize: scaledSize(10),
-                  lineHeight: 15,
-                },
-              ]}>
-              You have not performed any{'\n'}transaction, you can send/request
-              money
-              {'\n'}from your contacts{' '}
-            </Text>
-          </View>
-          {/* going to be a flatlist */}
-          {/* <TransactionItem />
-          <TransactionItem /> */}
+          {transactions.length === 0 ? (
+            <View style={styles.emptyTranxBox}>
+              <Image
+                source={require('../../../assets/images/note.png')}
+                style={styles.avatarImage}
+              />
+              <Text
+                style={[
+                  styles.headerText,
+                  {color: StyleGuide.Colors.shades.grey[25]},
+                ]}>
+                No recent Transaction
+              </Text>
+              <Text
+                style={[
+                  styles.greetingsText,
+                  {
+                    textAlign: 'center',
+                    paddingBottom: 20,
+                    fontSize: scaledSize(10),
+                    lineHeight: 15,
+                  },
+                ]}>
+                You have not performed any{'\n'}transaction, you can
+                send/request money
+                {'\n'}from your contacts{' '}
+              </Text>
+            </View>
+          ) : (
+            <View style={{flex: 1}}>
+              <FlatList
+                data={transactions}
+                initialNumToRender={10}
+                renderItem={renderItem}
+                keyboardShouldPersistTaps="always"
+                keyExtractor={(item, index) => `${item?.toString()}-${index}`}
+                ListEmptyComponent={
+                  <View>
+                    <Text>Loading transactions...</Text>
+                  </View>
+                }
+                contentContainerStyle={{paddingBottom: scaleHeight(10)}}
+              />
+            </View>
+          )}
         </View>
         <ActionSheet
           initialOffsetFromBottom={1}

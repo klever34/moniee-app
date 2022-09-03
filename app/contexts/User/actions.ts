@@ -212,7 +212,7 @@ export const fetchBadges = async (): Promise<any> => {
 
 export const fetchRecentTransactions = async (): Promise<any> => {
   const user_id = await EncryptedStorage.getItem('user-id');
-  const result = await API.get(`user/${user_id}/badges`);
+  const result = await API.get(`user/${user_id}/transactions`);
   return result.data.data;
 };
 

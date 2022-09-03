@@ -21,6 +21,20 @@ type NotificationProps = {
   openModal: (val: boolean) => void;
 };
 
+export const dateConverter = (myDate: string) => {
+  var fromNow = moment(myDate).fromNow();
+  return moment(myDate).calendar(null, {
+    lastWeek: '[Last] dddd',
+    lastDay: '[Yesterday]',
+    sameDay: '[Today]',
+    nextDay: '[Tomorrow]',
+    nextWeek: 'dddd',
+    sameElse: function () {
+      return '[' + fromNow + ']';
+    },
+  });
+};
+
 const NotificationItem: React.FC<NotificationProps> = ({
   amount,
   destination,
@@ -35,20 +49,6 @@ const NotificationItem: React.FC<NotificationProps> = ({
   // const [acceptLoader, setAcceptLoader] = useState(false);
   const [declineLoader, setDeclineLoader] = useState(false);
   const toast = useToast();
-
-  const dateConverter = (myDate: string) => {
-    var fromNow = moment(myDate).fromNow();
-    return moment(myDate).calendar(null, {
-      lastWeek: '[Last] dddd',
-      lastDay: '[Yesterday]',
-      sameDay: '[Today]',
-      nextDay: '[Tomorrow]',
-      nextWeek: 'dddd',
-      sameElse: function () {
-        return '[' + fromNow + ']';
-      },
-    });
-  };
 
   const getNotificationType = () => {
     switch (type) {
@@ -72,24 +72,24 @@ const NotificationItem: React.FC<NotificationProps> = ({
       case 'request-sent':
         return (
           <Text style={styles.body}>
-            Your request:<Text style={styles.boldText}> ₦{amount}</Text> for
-            <Text style={styles.boldText}> {reason}</Text> has been delivered to
-            <Text style={styles.boldText}> {destination}</Text>
+            Your sent a request of:
+            <Text style={styles.boldText}> ₦{amount}</Text> to
+            <Text style={styles.boldText}> {destination}</Text> for
+            <Text style={styles.boldText}> {reason ?? ''}</Text>
           </Text>
         );
       case 'deposit':
         return (
           <Text style={styles.body}>
-            <Text style={styles.boldText}>{destination}</Text>
-            sent<Text style={styles.boldText}> ₦{amount}</Text> for
-            <Text style={styles.boldText}> {reason}</Text>
+            Your deposit of<Text style={styles.boldText}> ₦{amount}</Text> has
+            been completed
           </Text>
         );
       case 'withdrawal':
         return (
           <Text style={styles.body}>
             <Text style={styles.boldText}>₦{amount}</Text> successfully sent to
-            your bank accout
+            your bank account
           </Text>
         );
       case 'request':
@@ -111,7 +111,7 @@ const NotificationItem: React.FC<NotificationProps> = ({
       default:
         return (
           <Text style={styles.body}>
-            <Text style={styles.boldText}>Default block</Text>
+            <Text style={styles.boldText}>New Notification</Text>
           </Text>
         );
     }
@@ -165,7 +165,7 @@ const NotificationItem: React.FC<NotificationProps> = ({
           },
         });
       } else {
-        toast.show('Could not process request', {
+        toast.show('Could not decline request', {
           type: 'custom_toast',
           animationDuration: 100,
           data: {

@@ -3,14 +3,31 @@ import React from 'react';
 import {View, Text, StyleSheet, Platform, Image} from 'react-native';
 import StyleGuide from '../assets/style-guide';
 import {scaledSize} from '../assets/style-guide/typography';
+// import {format} from 'date-fns';
+import {dateConverter} from './NotificationItem';
 
-type TransactionItemsProps = {
-  amount?: number;
+export type TransactionItemsProps = {
+  amount?: string;
+  created_at?: string;
+  description?: string;
+  from?: any;
+  id?: number;
+  meta?: any;
+  status?: string;
+  to?: any;
+  type?: string;
+  updated_at?: string;
+  user_id?: number;
 };
 
-const TransactionItem = ({amount = 2000}: TransactionItemsProps) => {
+const TransactionItem = ({
+  amount,
+  created_at,
+  description,
+  type,
+}: TransactionItemsProps) => {
   return (
-    <View style={[styles.main]}>
+    <View style={styles.main}>
       <View
         style={[
           styles.topContainer,
@@ -18,19 +35,24 @@ const TransactionItem = ({amount = 2000}: TransactionItemsProps) => {
         ]}>
         <View style={styles.avatarBox}>
           <Image
-            source={require('../assets/images/avatar.png')}
+            source={require('../assets/images/moniee.png')}
             style={[styles.avatarImage, {marginBottom: 5}]}
           />
           <View style={styles.greetingsBox}>
             <Text
               style={[
                 styles.headerText,
-                {fontSize: scaledSize(14), padding: 3},
+                {
+                  fontSize: scaledSize(12),
+                  padding: 3,
+                  width: 250,
+                },
               ]}>
-              Withdrawal
+              {description}
             </Text>
-            <Text style={[styles.accountName, {opacity: 0.5}]}>
-              23 Mar, 2022
+            <Text style={[styles.dateText, {opacity: 0.5}]}>
+              {/* {format(new Date(created_at!), 'MMM dd, yyyy')} */}
+              {dateConverter(created_at!)}
             </Text>
           </View>
         </View>
@@ -40,7 +62,10 @@ const TransactionItem = ({amount = 2000}: TransactionItemsProps) => {
               styles.headerText,
               {
                 fontSize: scaledSize(16),
-                color: StyleGuide.Colors.shades.red[25],
+                color:
+                  type === 'debit'
+                    ? StyleGuide.Colors.shades.red[25]
+                    : StyleGuide.Colors.shades.green[300],
               },
             ]}>
             ₦{amount}
@@ -52,7 +77,11 @@ const TransactionItem = ({amount = 2000}: TransactionItemsProps) => {
 };
 
 const styles = StyleSheet.create({
-  main: {},
+  main: {
+    marginHorizontal: 10,
+    marginTop: 10,
+    width: '90%',
+  },
   topContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -60,9 +89,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   avatarImage: {
-    height: 40,
-    width: 40,
+    height: 35,
+    width: 35,
     marginRight: 5,
+    borderRadius: 30,
   },
   iconsBox: {
     flexDirection: 'row',
@@ -74,10 +104,11 @@ const styles = StyleSheet.create({
     fontFamily: 'NexaRegular',
     margin: 5,
   },
-  accountName: {
+  dateText: {
     color: StyleGuide.Colors.shades.magenta[50],
     fontFamily: Platform.OS === 'ios' ? 'Nexa-Bold' : 'NexaBold',
     margin: 5,
+    fontSize: scaledSize(12),
   },
   avatarBox: {
     flexDirection: 'row',

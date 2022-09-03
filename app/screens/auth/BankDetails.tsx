@@ -49,7 +49,7 @@ const BankDetails: React.FC<ScreenProps<'BankDetails'>> = ({navigation}) => {
     bank: Decoder.string,
     account_number: Decoder.string.satisfy({
       predicate: (arg: string) => arg.length === 10,
-      failureMessage: 'BVN must be 11 digits long',
+      failureMessage: 'Account number should be 10 digits',
     }),
     bvn: Decoder.string.satisfy({
       predicate: (arg: string) => arg.length === 11,

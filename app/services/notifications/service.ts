@@ -58,15 +58,15 @@ export const initializeFB = () => {
     if (Platform.OS === 'android') {
       PushNotification.localNotification({
         id: uuidv4(),
-        channelId: 'shara-customer-notification',
-        title: notification.title,
-        message: notification.body!,
+        channelId: 'moniee-app-notification',
+        title: notification?.title ?? 'New notification',
+        message: notification?.body! ?? '',
       });
     } else {
       PushNotificationIOS.addNotificationRequest({
         id: uuidv4(),
-        title: notification.title,
-        body: notification.body!,
+        title: notification?.title ?? 'New notification',
+        body: notification?.body! ?? '',
       });
     }
   };
