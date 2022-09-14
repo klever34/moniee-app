@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
   iconsBox: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingLeft: 15,
   },
   greetingsBox: {},
   greetingsText: {
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
   avatarBox: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '80%',
   },
   iconBg: {
     backgroundColor: StyleGuide.Colors.white,

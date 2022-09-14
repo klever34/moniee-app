@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>moniee</string>
+	<string>squareme</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -36,15 +36,15 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Moniee needs access to your camera. Please Allow.</string>
+	<string>Squareme needs access to your camera. Please Allow.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Moniee needs access to your contacts. Please Allow</string>
+	<string>Squareme needs access to your contacts. Please Allow</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Moniee needs access to your microphone. Please Allow</string>
+	<string>Squareme needs access to your microphone. Please Allow</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Moniee needs access to show notifications. Please Allow</string>
+	<string>Squareme needs access to show notifications. Please Allow</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>NexaBold.otf</string>

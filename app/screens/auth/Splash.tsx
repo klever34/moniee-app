@@ -1,20 +1,20 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, Image} from 'react-native';
 import StyleGuide from '../../assets/style-guide';
-import LottieView from 'lottie-react-native';
+// import LottieView from 'lottie-react-native';
 
 const Splash: React.FC = () => {
   return (
     <View style={styles.container}>
-      {/* <Image
-        source={require('../../assets/images/logo.png')}
+      <Image
+        source={require('../../assets/images/new-logo.png')}
         style={styles.image}
-      /> */}
-      <LottieView
+      />
+      {/* <LottieView
         source={require('../../assets/animations/logo_animation.json')}
         autoPlay
         loop
-      />
+      /> */}
     </View>
   );
 };
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   image: {
-    width: '80%',
+    width: '70%',
     resizeMode: 'contain',
   },
 });

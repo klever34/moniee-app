@@ -9,7 +9,9 @@
 #import <RNCPushNotificationIOS.h>
 
 #import <React/RCTAppSetupUtils.h>
-
+#import <TrustKit/TrustKit.h>
+#import <TrustKit/TSKPinningValidator.h>
+#import <TrustKit/TSKPinningValidatorCallback.h>
 
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
@@ -98,6 +100,35 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   _bridgeAdapter = [[RCTSurfacePresenterBridgeAdapter alloc] initWithBridge:bridge contextContainer:_contextContainer];
   bridge.surfacePresenter = _bridgeAdapter.surfacePresenter;
 #endif
+  // Override TrustKit's logger method, useful for local debugging
+  void (^loggerBlock)(NSString *) = ^void(NSString *message)
+  {
+    NSLog(@"TrustKit log: %@", message);
+  };
+  [TrustKit setLoggerBlock:loggerBlock];
+
+  NSDictionary *trustKitConfig =
+  @{
+    // Swizzling because we can't access the NSURLSession instance used in React Native's fetch method
+    kTSKSwizzleNetworkDelegates: @YES,
+    kTSKPinnedDomains: @{
+        @"busdue.com" : @{
+            kTSKIncludeSubdomains: @YES, // Pin all subdomains
+            kTSKEnforcePinning: @YES, // Block connections if pinning validation failed
+            kTSKDisableDefaultReportUri: @YES,
+            kTSKPublicKeyHashes : @[
+              @"bD/CK1qoP4tA5hhoBgHn0wXvh72whnS5vRXsLgWawvA=",
+              @"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=", // Fake backup key but we need to provide 2 pins
+            ],
+        },
+    }};
+  [TrustKit initSharedInstanceWithConfiguration:trustKitConfig];
+  [TrustKit sharedInstance].pinningValidatorCallback = ^(TSKPinningValidatorResult *result, NSString *notedHostname, TKSDomainPinningPolicy *policy) {
+    if (result.finalTrustDecision == TSKTrustEvaluationFailedNoMatchingPin) {
+      NSLog(@"TrustKit certificate matching failed");
+      // Add more logging here. i.e. Sentry, BugSnag etc
+    }
+  };
 
   UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"moniee", nil);
 

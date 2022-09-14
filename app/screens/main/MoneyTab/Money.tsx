@@ -31,6 +31,9 @@ import {useIsFocused} from '@react-navigation/native';
 import BackgroundFetch from 'react-native-background-fetch';
 import {APIUserOBJ} from '../ProfileTab/Profile';
 
+const START_MINUTES = 5;
+const START_SECONDS = 0;
+
 const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const [moneyValue, setMoneyValue] = useState<string>('');
   const [balance, setBalance] = useState<number>();
@@ -38,6 +41,9 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const isFocused = useIsFocused();
   const [pageLoading, setPageLoading] = useState<boolean>(true);
   const [userObj, setUserObj] = useState<APIUserOBJ>();
+  const [minutes, setMinutes] = useState(START_MINUTES);
+  const [seconds, setSeconds] = useState(START_SECONDS);
+  const [isTimerExpired, setTimerStatus] = useState<boolean>(false);
 
   const formatAsNumber = (arg: number): string => formatNumber()(arg);
 
@@ -49,22 +55,59 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
   const [appStateVisible, setAppStateVisible] = useState(appState.current);
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      return;
-    }
+    let timerInterval = setInterval(() => {
+      if (seconds > 0) {
+        setSeconds(seconds - 1);
+      }
+      if (seconds === 0) {
+        if (minutes === 0) {
+          clearInterval(timerInterval);
+          setTimerStatus(true);
+        } else {
+          setMinutes(minutes - 1);
+          setSeconds(59);
+        }
+      }
+    }, 1000);
+    return () => {
+      clearInterval(timerInterval);
+    };
+  });
+
+  useEffect(() => {
+    try {
+      (async () => {
+        if (isTimerExpired) {
+          await logOutUser();
+        }
+      })();
+    } catch (error: any) {}
+  }, [isTimerExpired, logOutUser, minutes, seconds]);
+
+  useEffect(() => {
     BackgroundFetch.configure(
       {
         stopOnTerminate: false,
         minimumFetchInterval: 15,
       },
       async taskId => {
-        await getUserBalance();
+        console.log('checking background exec');
+        // await getUserBalance();
+        if (isTimerExpired) {
+          await logOutUser();
+        }
         BackgroundFetch.finish(taskId);
       },
       () => {
         console.log('RNBackgroundFetch failed to start.');
       },
     );
+
+    BackgroundFetch.scheduleTask({
+      taskId: 'com.app.moniee',
+      forceAlarmManager: true,
+      delay: 2000, // <-- milliseconds
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -76,6 +119,7 @@ const Money: React.FC<ScreenProps<'Money'>> = ({navigation}) => {
       ) {
         console.log('App has come to the foreground!');
       }
+      console.log('background');
 
       appState.current = nextAppState;
       setAppStateVisible(appState.current);

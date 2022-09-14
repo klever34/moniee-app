@@ -35,6 +35,8 @@ target 'moniee' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  pod 'TrustKit', '1.6.5'
+  
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
   pod 'RNSVG', :path => '../node_modules/react-native-svg'
