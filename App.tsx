@@ -73,7 +73,7 @@ import {MonieeLogEvent} from './app/services/apps-flyer';
 
 appsFlyer.initSdk(
   {
-    devKey: 'GuAjoPscg85jqMujtfL3vQ',
+    devKey: '',
     isDebug: false,
     // appId: '41*****44',
     onInstallConversionDataListener: true, //Optional
